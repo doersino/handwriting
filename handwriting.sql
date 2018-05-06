@@ -56,6 +56,7 @@ thin(pos, x, y) AS (
     UNION ALL
 
   -- TODO retry: recursively access the most recent thinned point while windowing from that pos to end in smooth and selecting the first one not in square (or circle) (i.e. everything outside square, sorted/with ordinality and order by, limit 1,,, or just min pos?)
+  -- TODO instead of square, use circle (i.e. euclidean distance)?
   SELECT pos, x, y
   FROM   (  -- TODO subquery cause no order by in recursive part => check again if that's really necessary
     SELECT s.pos, s.x, s.y
@@ -68,9 +69,12 @@ thin(pos, x, y) AS (
   ) AS temp -- TODO note that from here, pos has gaps
 ),
 curve4(pos, x, y, direction) AS (
+  -- TODO custom data type for direction? https://www.postgresql.org/docs/9.1/static/datatype-enum.html
   -- TODO do we really need x and y as return values here?
-  -- order of subtraction reversed between y and x to match drawing
   -- TODO below line should be a function?
+  -- TODO in the original memorandum, this is done using a set of inequalities – ask bennjamin whether to replicate or not!
+  -- TODO hysteresis zones, see page 26 of pdf
+  -- order of subtraction reversed between y and x to match drawing
   SELECT pos, x, y, ((-degrees(atan2(y - lag(y) OVER (ORDER BY pos), lag(x) OVER (ORDER BY pos) - x))/(360/4)) :: int + 2) % 4
   FROM   thin
 ),
@@ -99,6 +103,7 @@ curve16(pos, x, y, direction) AS (
   FROM   thin
 ),
 corner(pos, x, y, direction, corner) AS (
+  -- TODO page 27 or memorandum pdf: a corner is detected wheneven the pen moves in the same (+-1!) 16-direction for at least two segments, changes direction by at least 90deg, and then proceeds along the new direction (+-1) for at least two segments, either immediately or through a one-segment turn
   SELECT pos, x, y, direction,
          CASE
            WHEN lag(direction) OVER win = lag(direction, 2) OVER win -- one-segment turn
@@ -142,7 +147,7 @@ endd(x, y) AS (
   LIMIT 1
 ),
 startgrid(n) AS (
-  -- TODO below line should be a function?
+  -- TODO below line should be a function? also change to match memorandum
   SELECT (floor(4 * (s.x-a.xmin)/a.width) :: int) + (floor(4 * (s.y-a.ymin)/a.height) :: int) * 4
   FROM start s, aabb a
   --FROM (VALUES (1,25,25), (2,75,25), (3,25,75), (4,75,75), (5,51,51), (6,111,34)) AS s(pos,x,y),
