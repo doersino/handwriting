@@ -1,0 +1,14 @@
+svg {
+    border: 1px solid grey;
+}
+
+circle {
+    stroke-width: 0px;
+    fill: steelblue;
+    r: 2;
+}
+
+.dump {
+  font-family: "PragmataPro";
+  font-size: 16px;
+}
