@@ -1,0 +1,5 @@
+SELECT 1;
+
+SELECT :'pen';
+
+SELECT 2;

@@ -1,25 +1,25 @@
 -- Hand writing recognition.
--- psql -d handwriting -f handwriting.sql -v mouse='[{"x":1, "y":2},{"x":3, "y":4}]'
+-- psql -d handwriting -f handwriting.sql -v pen='[{"x":1, "y":2},{"x":3, "y":4}]'
 
 -- TODO commentary in one big comment parallel/to the right of the code
 
 -- original example
---\set mouse '[{"x":1, "y":2},{"x":2, "y":4}]'
+--\set pen '[{"x":1, "y":2},{"x":2, "y":4}]'
 
 -- A
---\set mouse '[ { "x": 38, "y": 147 }, { "x": 38, "y": 147 }, { "x": 38, "y": 145 }, { "x": 38, "y": 143 }, { "x": 38, "y": 140 }, { "x": 40, "y": 135 }, { "x": 43, "y": 130 }, { "x": 49, "y": 120 }, { "x": 53, "y": 113 }, { "x": 58, "y": 106 }, { "x": 62, "y": 97 }, { "x": 68, "y": 88 }, { "x": 74, "y": 79 }, { "x": 78, "y": 71 }, { "x": 82, "y": 62 }, { "x": 85, "y": 58 }, { "x": 87, "y": 53 }, { "x": 90, "y": 46 }, { "x": 92, "y": 43 }, { "x": 94, "y": 40 }, { "x": 96, "y": 37 }, { "x": 96, "y": 35 }, { "x": 97, "y": 34 }, { "x": 98, "y": 34 }, { "x": 98, "y": 34 }, { "x": 98, "y": 34 }, { "x": 98, "y": 35 }, { "x": 99, "y": 40 }, { "x": 100, "y": 45 }, { "x": 103, "y": 54 }, { "x": 107, "y": 64 }, { "x": 111, "y": 74 }, { "x": 118, "y": 87 }, { "x": 121, "y": 94 }, { "x": 123, "y": 102 }, { "x": 125, "y": 107 }, { "x": 126, "y": 112 }, { "x": 127, "y": 116 }, { "x": 128, "y": 119 }, { "x": 129, "y": 121 }, { "x": 129, "y": 123 }, { "x": 129, "y": 125 }, { "x": 129, "y": 126 }, { "x": 130, "y": 127 }, { "x": 130, "y": 128 }, { "x": 130, "y": 129 }, { "x": 131, "y": 130 }, { "x": 131, "y": 131 }, { "x": 131, "y": 132 }, { "x": 131, "y": 133 }, { "x": 131, "y": 134 }, { "x": 132, "y": 135 }, { "x": 132, "y": 135 }, { "x": 131, "y": 135 }, { "x": 128, "y": 133 }, { "x": 124, "y": 131 }, { "x": 120, "y": 129 }, { "x": 114, "y": 127 }, { "x": 110, "y": 125 }, { "x": 105, "y": 123 }, { "x": 101, "y": 121 }, { "x": 97, "y": 119 }, { "x": 92, "y": 117 }, { "x": 89, "y": 116 }, { "x": 86, "y": 114 }, { "x": 85, "y": 114 }, { "x": 81, "y": 113 }, { "x": 80, "y": 112 }, { "x": 78, "y": 111 }, { "x": 76, "y": 110 }, { "x": 75, "y": 110 }, { "x": 74, "y": 109 }, { "x": 72, "y": 109 }, { "x": 71, "y": 108 }, { "x": 70, "y": 108 }, { "x": 68, "y": 107 }, { "x": 67, "y": 107 }, { "x": 66, "y": 107 }, { "x": 65, "y": 106 }, { "x": 65, "y": 106 }, { "x": 65, "y": 106 } ]'
+\set pen '[ { "x": 38, "y": 147 }, { "x": 38, "y": 147 }, { "x": 38, "y": 145 }, { "x": 38, "y": 143 }, { "x": 38, "y": 140 }, { "x": 40, "y": 135 }, { "x": 43, "y": 130 }, { "x": 49, "y": 120 }, { "x": 53, "y": 113 }, { "x": 58, "y": 106 }, { "x": 62, "y": 97 }, { "x": 68, "y": 88 }, { "x": 74, "y": 79 }, { "x": 78, "y": 71 }, { "x": 82, "y": 62 }, { "x": 85, "y": 58 }, { "x": 87, "y": 53 }, { "x": 90, "y": 46 }, { "x": 92, "y": 43 }, { "x": 94, "y": 40 }, { "x": 96, "y": 37 }, { "x": 96, "y": 35 }, { "x": 97, "y": 34 }, { "x": 98, "y": 34 }, { "x": 98, "y": 34 }, { "x": 98, "y": 34 }, { "x": 98, "y": 35 }, { "x": 99, "y": 40 }, { "x": 100, "y": 45 }, { "x": 103, "y": 54 }, { "x": 107, "y": 64 }, { "x": 111, "y": 74 }, { "x": 118, "y": 87 }, { "x": 121, "y": 94 }, { "x": 123, "y": 102 }, { "x": 125, "y": 107 }, { "x": 126, "y": 112 }, { "x": 127, "y": 116 }, { "x": 128, "y": 119 }, { "x": 129, "y": 121 }, { "x": 129, "y": 123 }, { "x": 129, "y": 125 }, { "x": 129, "y": 126 }, { "x": 130, "y": 127 }, { "x": 130, "y": 128 }, { "x": 130, "y": 129 }, { "x": 131, "y": 130 }, { "x": 131, "y": 131 }, { "x": 131, "y": 132 }, { "x": 131, "y": 133 }, { "x": 131, "y": 134 }, { "x": 132, "y": 135 }, { "x": 132, "y": 135 }, { "x": 131, "y": 135 }, { "x": 128, "y": 133 }, { "x": 124, "y": 131 }, { "x": 120, "y": 129 }, { "x": 114, "y": 127 }, { "x": 110, "y": 125 }, { "x": 105, "y": 123 }, { "x": 101, "y": 121 }, { "x": 97, "y": 119 }, { "x": 92, "y": 117 }, { "x": 89, "y": 116 }, { "x": 86, "y": 114 }, { "x": 85, "y": 114 }, { "x": 81, "y": 113 }, { "x": 80, "y": 112 }, { "x": 78, "y": 111 }, { "x": 76, "y": 110 }, { "x": 75, "y": 110 }, { "x": 74, "y": 109 }, { "x": 72, "y": 109 }, { "x": 71, "y": 108 }, { "x": 70, "y": 108 }, { "x": 68, "y": 107 }, { "x": 67, "y": 107 }, { "x": 66, "y": 107 }, { "x": 65, "y": 106 }, { "x": 65, "y": 106 }, { "x": 65, "y": 106 } ]'
 
 -- I
---\set mouse '[ { "x": 77, "y": 47 }, { "x": 77, "y": 48 }, { "x": 77, "y": 51 }, { "x": 77, "y": 60 }, { "x": 77, "y": 79 }, { "x": 77, "y": 98 }, { "x": 77, "y": 115 }, { "x": 77, "y": 129 }, { "x": 77, "y": 138 }, { "x": 77, "y": 146 }, { "x": 77, "y": 151 }, { "x": 77, "y": 155 }, { "x": 77, "y": 157 }, { "x": 77, "y": 158 }, { "x": 78, "y": 159 }, { "x": 78, "y": 159 } ]'
+--\set pen '[ { "x": 77, "y": 47 }, { "x": 77, "y": 48 }, { "x": 77, "y": 51 }, { "x": 77, "y": 60 }, { "x": 77, "y": 79 }, { "x": 77, "y": 98 }, { "x": 77, "y": 115 }, { "x": 77, "y": 129 }, { "x": 77, "y": 138 }, { "x": 77, "y": 146 }, { "x": 77, "y": 151 }, { "x": 77, "y": 155 }, { "x": 77, "y": 157 }, { "x": 77, "y": 158 }, { "x": 78, "y": 159 }, { "x": 78, "y": 159 } ]'
 
 -- J
---\set mouse '[ { "x": 102, "y": 42 }, { "x": 102, "y": 42 }, { "x": 102, "y": 43 }, { "x": 102, "y": 45 }, { "x": 102, "y": 55 }, { "x": 102, "y": 64 }, { "x": 102, "y": 76 }, { "x": 102, "y": 87 }, { "x": 102, "y": 96 }, { "x": 102, "y": 103 }, { "x": 102, "y": 109 }, { "x": 101, "y": 115 }, { "x": 100, "y": 121 }, { "x": 99, "y": 126 }, { "x": 97, "y": 131 }, { "x": 96, "y": 136 }, { "x": 95, "y": 139 }, { "x": 91, "y": 144 }, { "x": 87, "y": 146 }, { "x": 84, "y": 147 }, { "x": 80, "y": 148 }, { "x": 74, "y": 148 }, { "x": 71, "y": 145 }, { "x": 68, "y": 139 }, { "x": 66, "y": 133 }, { "x": 64, "y": 127 }, { "x": 63, "y": 121 }, { "x": 63, "y": 117 }, { "x": 63, "y": 115 }, { "x": 63, "y": 113 } ]'
+--\set pen '[ { "x": 102, "y": 42 }, { "x": 102, "y": 42 }, { "x": 102, "y": 43 }, { "x": 102, "y": 45 }, { "x": 102, "y": 55 }, { "x": 102, "y": 64 }, { "x": 102, "y": 76 }, { "x": 102, "y": 87 }, { "x": 102, "y": 96 }, { "x": 102, "y": 103 }, { "x": 102, "y": 109 }, { "x": 101, "y": 115 }, { "x": 100, "y": 121 }, { "x": 99, "y": 126 }, { "x": 97, "y": 131 }, { "x": 96, "y": 136 }, { "x": 95, "y": 139 }, { "x": 91, "y": 144 }, { "x": 87, "y": 146 }, { "x": 84, "y": 147 }, { "x": 80, "y": 148 }, { "x": 74, "y": 148 }, { "x": 71, "y": 145 }, { "x": 68, "y": 139 }, { "x": 66, "y": 133 }, { "x": 64, "y": 127 }, { "x": 63, "y": 121 }, { "x": 63, "y": 117 }, { "x": 63, "y": 115 }, { "x": 63, "y": 113 } ]'
 
 -- testing
-\set mouse '[ { "x": 49, "y": 141 }, { "x": 49, "y": 140 }, { "x": 49, "y": 139 }, { "x": 49, "y": 134 }, { "x": 49, "y": 122 }, { "x": 48, "y": 112 }, { "x": 47, "y": 100 }, { "x": 46, "y": 93 }, { "x": 46, "y": 84 }, { "x": 45, "y": 76 }, { "x": 45, "y": 70 }, { "x": 45, "y": 66 }, { "x": 45, "y": 61 }, { "x": 45, "y": 57 }, { "x": 45, "y": 55 }, { "x": 45, "y": 54 }, { "x": 46, "y": 53 }, { "x": 46, "y": 49 }, { "x": 47, "y": 47 }, { "x": 49, "y": 43 }, { "x": 50, "y": 40 }, { "x": 51, "y": 37 }, { "x": 52, "y": 35 }, { "x": 54, "y": 34 }, { "x": 56, "y": 33 }, { "x": 59, "y": 31 }, { "x": 62, "y": 29 }, { "x": 64, "y": 28 }, { "x": 66, "y": 28 }, { "x": 69, "y": 28 }, { "x": 71, "y": 28 }, { "x": 75, "y": 28 }, { "x": 78, "y": 28 }, { "x": 81, "y": 30 }, { "x": 83, "y": 33 }, { "x": 85, "y": 38 }, { "x": 86, "y": 43 }, { "x": 86, "y": 51 }, { "x": 86, "y": 57 }, { "x": 85, "y": 64 }, { "x": 81, "y": 70 }, { "x": 75, "y": 75 }, { "x": 69, "y": 79 }, { "x": 64, "y": 82 }, { "x": 58, "y": 85 }, { "x": 54, "y": 88 }, { "x": 51, "y": 90 }, { "x": 49, "y": 91 }, { "x": 49, "y": 92 }, { "x": 48, "y": 92 }, { "x": 48, "y": 92 }, { "x": 48, "y": 92 }, { "x": 48, "y": 92 }, { "x": 48, "y": 91 }, { "x": 49, "y": 91 }, { "x": 53, "y": 90 }, { "x": 58, "y": 89 }, { "x": 64, "y": 89 }, { "x": 70, "y": 89 }, { "x": 77, "y": 89 }, { "x": 83, "y": 90 }, { "x": 86, "y": 92 }, { "x": 89, "y": 94 }, { "x": 91, "y": 96 }, { "x": 93, "y": 99 }, { "x": 94, "y": 102 }, { "x": 95, "y": 105 }, { "x": 96, "y": 109 }, { "x": 96, "y": 112 }, { "x": 96, "y": 115 }, { "x": 96, "y": 119 }, { "x": 94, "y": 125 }, { "x": 91, "y": 127 }, { "x": 88, "y": 131 }, { "x": 83, "y": 135 }, { "x": 80, "y": 136 }, { "x": 78, "y": 136 }, { "x": 74, "y": 136 }, { "x": 71, "y": 136 }, { "x": 67, "y": 136 }, { "x": 63, "y": 136 }, { "x": 60, "y": 136 }, { "x": 57, "y": 136 }, { "x": 56, "y": 136 }, { "x": 55, "y": 136 } ]'
+--\set pen '[ { "x": 49, "y": 141 }, { "x": 49, "y": 140 }, { "x": 49, "y": 139 }, { "x": 49, "y": 134 }, { "x": 49, "y": 122 }, { "x": 48, "y": 112 }, { "x": 47, "y": 100 }, { "x": 46, "y": 93 }, { "x": 46, "y": 84 }, { "x": 45, "y": 76 }, { "x": 45, "y": 70 }, { "x": 45, "y": 66 }, { "x": 45, "y": 61 }, { "x": 45, "y": 57 }, { "x": 45, "y": 55 }, { "x": 45, "y": 54 }, { "x": 46, "y": 53 }, { "x": 46, "y": 49 }, { "x": 47, "y": 47 }, { "x": 49, "y": 43 }, { "x": 50, "y": 40 }, { "x": 51, "y": 37 }, { "x": 52, "y": 35 }, { "x": 54, "y": 34 }, { "x": 56, "y": 33 }, { "x": 59, "y": 31 }, { "x": 62, "y": 29 }, { "x": 64, "y": 28 }, { "x": 66, "y": 28 }, { "x": 69, "y": 28 }, { "x": 71, "y": 28 }, { "x": 75, "y": 28 }, { "x": 78, "y": 28 }, { "x": 81, "y": 30 }, { "x": 83, "y": 33 }, { "x": 85, "y": 38 }, { "x": 86, "y": 43 }, { "x": 86, "y": 51 }, { "x": 86, "y": 57 }, { "x": 85, "y": 64 }, { "x": 81, "y": 70 }, { "x": 75, "y": 75 }, { "x": 69, "y": 79 }, { "x": 64, "y": 82 }, { "x": 58, "y": 85 }, { "x": 54, "y": 88 }, { "x": 51, "y": 90 }, { "x": 49, "y": 91 }, { "x": 49, "y": 92 }, { "x": 48, "y": 92 }, { "x": 48, "y": 92 }, { "x": 48, "y": 92 }, { "x": 48, "y": 92 }, { "x": 48, "y": 91 }, { "x": 49, "y": 91 }, { "x": 53, "y": 90 }, { "x": 58, "y": 89 }, { "x": 64, "y": 89 }, { "x": 70, "y": 89 }, { "x": 77, "y": 89 }, { "x": 83, "y": 90 }, { "x": 86, "y": 92 }, { "x": 89, "y": 94 }, { "x": 91, "y": 96 }, { "x": 93, "y": 99 }, { "x": 94, "y": 102 }, { "x": 95, "y": 105 }, { "x": 96, "y": 109 }, { "x": 96, "y": 112 }, { "x": 96, "y": 115 }, { "x": 96, "y": 119 }, { "x": 94, "y": 125 }, { "x": 91, "y": 127 }, { "x": 88, "y": 131 }, { "x": 83, "y": 135 }, { "x": 80, "y": 136 }, { "x": 78, "y": 136 }, { "x": 74, "y": 136 }, { "x": 71, "y": 136 }, { "x": 67, "y": 136 }, { "x": 63, "y": 136 }, { "x": 60, "y": 136 }, { "x": 57, "y": 136 }, { "x": 56, "y": 136 }, { "x": 55, "y": 136 } ]'
 
 -- hysteresis zones test
---\set mouse '[ { "x": 46, "y": 162 }, { "x": 46, "y": 161 }, { "x": 47, "y": 161 }, { "x": 47, "y": 161 }, { "x": 47, "y": 161 }, { "x": 47, "y": 161 }, { "x": 48, "y": 161 }, { "x": 48, "y": 161 }, { "x": 48, "y": 161 }, { "x": 48, "y": 161 }, { "x": 48, "y": 160 }, { "x": 48, "y": 160 }, { "x": 49, "y": 160 }, { "x": 49, "y": 160 }, { "x": 49, "y": 160 }, { "x": 49, "y": 160 }, { "x": 50, "y": 160 }, { "x": 50, "y": 160 }, { "x": 50, "y": 160 }, { "x": 50, "y": 160 }, { "x": 51, "y": 160 }, { "x": 51, "y": 160 }, { "x": 51, "y": 159 }, { "x": 51, "y": 159 }, { "x": 51, "y": 159 }, { "x": 52, "y": 159 }, { "x": 52, "y": 158 }, { "x": 52, "y": 158 }, { "x": 53, "y": 158 }, { "x": 53, "y": 158 }, { "x": 53, "y": 158 }, { "x": 53, "y": 158 }, { "x": 53, "y": 157 }, { "x": 53, "y": 157 }, { "x": 53, "y": 157 }, { "x": 53, "y": 157 }, { "x": 53, "y": 156 }, { "x": 53, "y": 156 }, { "x": 53, "y": 156 }, { "x": 53, "y": 155 }, { "x": 53, "y": 155 }, { "x": 53, "y": 154 }, { "x": 53, "y": 154 }, { "x": 53, "y": 153 }, { "x": 53, "y": 153 }, { "x": 53, "y": 153 }, { "x": 53, "y": 152 }, { "x": 53, "y": 152 }, { "x": 54, "y": 152 }, { "x": 54, "y": 152 }, { "x": 56, "y": 151 }, { "x": 58, "y": 150 }, { "x": 58, "y": 150 }, { "x": 59, "y": 150 }, { "x": 59, "y": 150 }, { "x": 60, "y": 150 }, { "x": 60, "y": 150 }, { "x": 60, "y": 150 }, { "x": 60, "y": 149 }, { "x": 60, "y": 149 }, { "x": 61, "y": 149 }, { "x": 61, "y": 149 }, { "x": 61, "y": 149 }, { "x": 61, "y": 149 }, { "x": 61, "y": 149 }, { "x": 61, "y": 148 }, { "x": 61, "y": 148 }, { "x": 61, "y": 148 }, { "x": 60, "y": 148 }, { "x": 60, "y": 147 }, { "x": 60, "y": 147 }, { "x": 60, "y": 147 }, { "x": 60, "y": 147 }, { "x": 60, "y": 147 }, { "x": 60, "y": 146 }, { "x": 60, "y": 146 }, { "x": 60, "y": 146 }, { "x": 60, "y": 146 }, { "x": 60, "y": 145 }, { "x": 61, "y": 145 }, { "x": 62, "y": 144 }, { "x": 63, "y": 143 }, { "x": 64, "y": 143 }, { "x": 64, "y": 143 }, { "x": 64, "y": 142 }, { "x": 64, "y": 142 }, { "x": 65, "y": 142 }, { "x": 66, "y": 140 }, { "x": 67, "y": 140 }, { "x": 67, "y": 139 }, { "x": 68, "y": 139 }, { "x": 68, "y": 139 }, { "x": 68, "y": 138 }, { "x": 69, "y": 138 }, { "x": 69, "y": 138 }, { "x": 69, "y": 137 }, { "x": 69, "y": 137 }, { "x": 69, "y": 137 }, { "x": 69, "y": 137 }, { "x": 69, "y": 136 }, { "x": 69, "y": 136 }, { "x": 70, "y": 136 }, { "x": 70, "y": 136 }, { "x": 70, "y": 136 }, { "x": 71, "y": 135 }, { "x": 71, "y": 135 }, { "x": 71, "y": 135 }, { "x": 71, "y": 135 }, { "x": 71, "y": 134 }, { "x": 72, "y": 134 }, { "x": 73, "y": 133 }, { "x": 74, "y": 132 }, { "x": 75, "y": 131 }, { "x": 76, "y": 131 }, { "x": 76, "y": 131 }, { "x": 77, "y": 131 }, { "x": 77, "y": 130 }, { "x": 77, "y": 130 }, { "x": 77, "y": 129 }, { "x": 77, "y": 128 }, { "x": 78, "y": 127 }, { "x": 78, "y": 126 }, { "x": 79, "y": 126 }, { "x": 79, "y": 125 }, { "x": 79, "y": 125 }, { "x": 79, "y": 125 }, { "x": 81, "y": 125 }, { "x": 82, "y": 125 }, { "x": 83, "y": 125 }, { "x": 83, "y": 125 }, { "x": 84, "y": 125 }, { "x": 84, "y": 125 }, { "x": 84, "y": 125 }, { "x": 84, "y": 125 }, { "x": 85, "y": 124 }, { "x": 85, "y": 124 }, { "x": 85, "y": 124 } ]'
+--\set pen '[ { "x": 46, "y": 162 }, { "x": 46, "y": 161 }, { "x": 47, "y": 161 }, { "x": 47, "y": 161 }, { "x": 47, "y": 161 }, { "x": 47, "y": 161 }, { "x": 48, "y": 161 }, { "x": 48, "y": 161 }, { "x": 48, "y": 161 }, { "x": 48, "y": 161 }, { "x": 48, "y": 160 }, { "x": 48, "y": 160 }, { "x": 49, "y": 160 }, { "x": 49, "y": 160 }, { "x": 49, "y": 160 }, { "x": 49, "y": 160 }, { "x": 50, "y": 160 }, { "x": 50, "y": 160 }, { "x": 50, "y": 160 }, { "x": 50, "y": 160 }, { "x": 51, "y": 160 }, { "x": 51, "y": 160 }, { "x": 51, "y": 159 }, { "x": 51, "y": 159 }, { "x": 51, "y": 159 }, { "x": 52, "y": 159 }, { "x": 52, "y": 158 }, { "x": 52, "y": 158 }, { "x": 53, "y": 158 }, { "x": 53, "y": 158 }, { "x": 53, "y": 158 }, { "x": 53, "y": 158 }, { "x": 53, "y": 157 }, { "x": 53, "y": 157 }, { "x": 53, "y": 157 }, { "x": 53, "y": 157 }, { "x": 53, "y": 156 }, { "x": 53, "y": 156 }, { "x": 53, "y": 156 }, { "x": 53, "y": 155 }, { "x": 53, "y": 155 }, { "x": 53, "y": 154 }, { "x": 53, "y": 154 }, { "x": 53, "y": 153 }, { "x": 53, "y": 153 }, { "x": 53, "y": 153 }, { "x": 53, "y": 152 }, { "x": 53, "y": 152 }, { "x": 54, "y": 152 }, { "x": 54, "y": 152 }, { "x": 56, "y": 151 }, { "x": 58, "y": 150 }, { "x": 58, "y": 150 }, { "x": 59, "y": 150 }, { "x": 59, "y": 150 }, { "x": 60, "y": 150 }, { "x": 60, "y": 150 }, { "x": 60, "y": 150 }, { "x": 60, "y": 149 }, { "x": 60, "y": 149 }, { "x": 61, "y": 149 }, { "x": 61, "y": 149 }, { "x": 61, "y": 149 }, { "x": 61, "y": 149 }, { "x": 61, "y": 149 }, { "x": 61, "y": 148 }, { "x": 61, "y": 148 }, { "x": 61, "y": 148 }, { "x": 60, "y": 148 }, { "x": 60, "y": 147 }, { "x": 60, "y": 147 }, { "x": 60, "y": 147 }, { "x": 60, "y": 147 }, { "x": 60, "y": 147 }, { "x": 60, "y": 146 }, { "x": 60, "y": 146 }, { "x": 60, "y": 146 }, { "x": 60, "y": 146 }, { "x": 60, "y": 145 }, { "x": 61, "y": 145 }, { "x": 62, "y": 144 }, { "x": 63, "y": 143 }, { "x": 64, "y": 143 }, { "x": 64, "y": 143 }, { "x": 64, "y": 142 }, { "x": 64, "y": 142 }, { "x": 65, "y": 142 }, { "x": 66, "y": 140 }, { "x": 67, "y": 140 }, { "x": 67, "y": 139 }, { "x": 68, "y": 139 }, { "x": 68, "y": 139 }, { "x": 68, "y": 138 }, { "x": 69, "y": 138 }, { "x": 69, "y": 138 }, { "x": 69, "y": 137 }, { "x": 69, "y": 137 }, { "x": 69, "y": 137 }, { "x": 69, "y": 137 }, { "x": 69, "y": 136 }, { "x": 69, "y": 136 }, { "x": 70, "y": 136 }, { "x": 70, "y": 136 }, { "x": 70, "y": 136 }, { "x": 71, "y": 135 }, { "x": 71, "y": 135 }, { "x": 71, "y": 135 }, { "x": 71, "y": 135 }, { "x": 71, "y": 134 }, { "x": 72, "y": 134 }, { "x": 73, "y": 133 }, { "x": 74, "y": 132 }, { "x": 75, "y": 131 }, { "x": 76, "y": 131 }, { "x": 76, "y": 131 }, { "x": 77, "y": 131 }, { "x": 77, "y": 130 }, { "x": 77, "y": 130 }, { "x": 77, "y": 129 }, { "x": 77, "y": 128 }, { "x": 78, "y": 127 }, { "x": 78, "y": 126 }, { "x": 79, "y": 126 }, { "x": 79, "y": 125 }, { "x": 79, "y": 125 }, { "x": 79, "y": 125 }, { "x": 81, "y": 125 }, { "x": 82, "y": 125 }, { "x": 83, "y": 125 }, { "x": 83, "y": 125 }, { "x": 84, "y": 125 }, { "x": 84, "y": 125 }, { "x": 84, "y": 125 }, { "x": 84, "y": 125 }, { "x": 85, "y": 124 }, { "x": 85, "y": 124 }, { "x": 85, "y": 124 } ]'
 
 ---------------------------------
 -- TOGGLES, KNOBS AND SWITCHES --
@@ -37,15 +37,15 @@
 -- minimum angle for a corner to be recognized
 \set cornerangle 80
 
-------------------------------
--- BEHOLD, THE MIGHTY QUERY --
-------------------------------
+----------------------------------
+-- QUERIES, QUERIES AND QUERIES --
+----------------------------------
 
--- Tabular representation (pos|x|y) of mouse stroke
+-- Tabular representation (pos|x|y) of pen stroke
 WITH RECURSIVE
 tablet(pos, x, y) AS (
   SELECT ordinality AS pos, x, :'height' - y  -- move origin from top left to bottom left
-  FROM   ROWS FROM(jsonb_to_recordset(:'mouse') AS (x int, y int))
+  FROM   ROWS FROM(jsonb_to_recordset(:'pen') AS (x int, y int))
          WITH ORDINALITY
 ),
 smooth(pos, x, y) AS (
@@ -80,34 +80,31 @@ thin(pos, x, y) AS (
   ) AS _
 ),
 curve(pos, x, y, direction) AS (
+  -- order of subtraction reversed between y and x to match drawing
   SELECT pos, x, y,
-         degrees(-atan2(y - lag(y) OVER (ORDER BY pos),
+         COALESCE(degrees(-atan2(y - lag(y) OVER (ORDER BY pos),
                   lag(x) OVER (ORDER BY pos) - x)
-                 ) + 180 -- TODO coalesce so it's pointing up for the first one?
+                 ) + 180, 90)  -- first one points up, matches essay implementation
   FROM   thin
 ),
 -- TODO use curve table
-curve4(pos, x, y, direction) AS (
+curve4(pos, direction) AS (
   -- TODO custom data type for direction? https://www.postgresql.org/docs/9.1/static/datatype-enum.html and https://stackoverflow.com/questions/1827122/converting-an-integer-to-enum-in-postgresql?noredirect=1&lq=1
   -- TODO do we really need x and y as return values here? no!
   -- TODO in the original memorandum, this is done using a set of inequalities – ask benjamin whether to replicate or not!
-  -- order of subtraction reversed between y and x to match drawing
-  SELECT pos, x, y,
-         ((-(atan2(y - lag(y) OVER (ORDER BY pos),
-                   lag(x) OVER (ORDER BY pos) - x)
-                  )/(2*pi()/4)) :: int + 4/2) % 4
-  FROM   thin
+  SELECT pos, (direction / 90) :: int
+  FROM curve
 ),
-curve42(pos, x, y, direction, direction4) AS (
+curve42(pos, direction, direction4) AS (
   -- with hysteresis zones, see page 26 of pdf -- worth it? ask benjamin
-  SELECT pos, x, y, direction, (direction/90) :: int
+  SELECT pos, direction, (direction/90) :: int
   FROM curve
   WHERE pos = 1
 
     UNION ALL
 
   SELECT * FROM
-    (SELECT c.pos, c.x, c.y,
+    (SELECT c.pos,
             CASE
               WHEN abs(c.direction - c42.direction) < 8
               THEN c42.direction
@@ -118,27 +115,25 @@ curve42(pos, x, y, direction, direction4) AS (
               THEN (c42.direction/90) :: int % 4
               ELSE (c.direction/90) :: int % 4
             END
-    FROM curve c, curve42 c42
-    WHERE c.pos > c42.pos
-    ORDER BY c.pos
-    LIMIT 1) AS _
+     FROM curve c, curve42 c42
+     WHERE c.pos > c42.pos
+     ORDER BY c.pos
+     LIMIT 1) AS _
 ),
-curve4dedup(pos, x, y, direction) AS (
-  SELECT pos, x, y, direction
+curve4change(pos, direction) AS (
+  -- Only the changes of the cardinal direction.
+  SELECT pos, direction
   FROM   (SELECT *,
                  COALESCE(lag(direction, 2) OVER win, -1) <> lag(direction) OVER win
                  AND lag(direction) OVER win = direction
           FROM curve4
-          WINDOW win AS (ORDER BY pos)) AS _(pos, x, y, direction, isnew)
+          WINDOW win AS (ORDER BY pos)) AS _(pos, direction, isnew)
   WHERE isnew
 ),
 -- TODO use curve table, maybe just emit rounded degrees? would make corner bit simpler
 curve16(pos, x, y, direction) AS (
-  SELECT pos, x, y,
-         ((-(atan2(y - lag(y) OVER (ORDER BY pos),
-                   lag(x) OVER (ORDER BY pos) - x)
-                  )/(2*pi()/16)) :: int + 16/2) % 16
-  FROM   thin
+  SELECT pos, x, y, (direction / 22.5) :: int
+  FROM curve
 ),
 corner(pos, x, y, direction, corner) AS (
   -- TODO page 27 or memorandum pdf: a corner is detected whenever the pen moves in the same (+-1!) 16-direction for at least two segments, changes direction by at least 90deg, and then proceeds along the new direction (+-1) for at least two segments, either immediately or through a one-segment turn
@@ -173,50 +168,32 @@ aabb(xmin, xmax, ymin, ymax, aspect, width, height, centerx, centery) AS (
          min(y)+(max(y)-min(y))/2
   FROM smooth
 ),
-start(x, y) AS (
-  SELECT x, y
-  FROM   smooth
+startgrid(n) AS (
+  SELECT greatest(0, 15 - ((floor(4 * (s.x-a.xmin)/a.width) :: int) + (floor(4 * (s.y-a.ymin)/a.height) :: int) * 4))
+  FROM smooth s, aabb a
   ORDER BY pos
   LIMIT 1
-),
--- TODO rename endd into something non-ridiculous
-endd(x, y) AS (
-  SELECT x, y
-  FROM   smooth
-  ORDER BY pos DESC
-  LIMIT 1
-),
-startgrid(n) AS (
-  SELECT 15 - ((floor(4 * (s.x-a.xmin)/a.width) :: int) + (floor(4 * (s.y-a.ymin)/a.height) :: int) * 4)
-  FROM start s, aabb a
-
-  -- TODO why does following give different result? data types?
-  --FROM smooth s, aabb a
-  --ORDER BY pos DESC
-  --LIMIT 1
   --FROM (VALUES (1,25,25), (2,75,25), (3,25,75), (4,75,75), (5,51,51), (6,111,34)) AS s(pos,x,y),
   --     (VALUES (0, 0, 201, 201)) AS a(xmin, ymin, width, height)
   --ORDER BY s.pos
 ),
-endgrid(n) AS (
-  SELECT 15 - ((floor(4 * (e.x-a.xmin)/a.width) :: int) + (floor(4 * (e.y-a.ymin)/a.height) :: int) * 4)
-  FROM endd e, aabb a
+stopgrid(n) AS (
+  SELECT greatest(0, 15 - ((floor(4 * (s.x-a.xmin)/a.width) :: int) + (floor(4 * (s.y-a.ymin)/a.height) :: int) * 4))
+  FROM smooth s, aabb a
+  ORDER BY pos DESC
+  LIMIT 1
 ),
 cornergrid(pos, n) AS (
-  --SELECT c.pos, (floor(4 * (a.xmax - c.x)/a.width) :: int) + (floor(4 * (a.ymax - c.y)/a.height) :: int) * 4
   SELECT c.pos, 15 - ((floor(4 * (c.x-a.xmin)/a.width) :: int) + (floor(4 * (c.y-a.ymin)/a.height) :: int) * 4)
   FROM corner c, aabb a
   WHERE c.corner
 ),
-features(center, start, endd, directions, corners, width, height, aspect) AS (
-  -- TODO assemble size and position features as described
-  -- TODO curve4dedup, corners, subdivision into 16 rectangles, projection of corners into those, start, end
-  -- TODO left, right, upper, lower bounds easily achieved using max/min on unthinned line
+features(center, start, stop, directions, corners, width, height, aspect) AS (
   SELECT point(centerx, centery),
          (TABLE startgrid),
-         (TABLE endgrid),
+         (TABLE stopgrid),
          (SELECT array_agg(c.direction ORDER BY c.pos)
-          FROM   curve4dedup c),
+          FROM   curve4change c),
          (SELECT array_agg(c.n ORDER BY c.pos)
           FROM   cornergrid c),
          a.width,
@@ -224,14 +201,14 @@ features(center, start, endd, directions, corners, width, height, aspect) AS (
          a.aspect
   FROM aabb a
 ),
-possible_characters(character) AS (
+possible_characters(characters) AS (
   -- TODO nice result formatting ("i think you mean S, however it could also be 5, etc.")
   -- TODO ask benjamin: should i come up with my completely own rules or adapt the ones from essay, maybe with some improvements?
   -- TODO maybe just lookup table with all the features (maybe upper/lower bounds for some of them, also need NULL or something for don't care), then last col => char. if nothing found, not recognized
   SELECT CASE
            WHEN next_step = NULL
            THEN possible_characters
-           ELSE possible_characters
+           ELSE possible_characters -- TODO
          END
   FROM features, (VALUES
                     ('{3}' :: int[], '{"I"}' :: char[], NULL),
@@ -298,4 +275,4 @@ possible_characters(character) AS (
   WHERE directions[1:4] = first_four_directions
 )
 
-SELECT * FROM startgrid;
+SELECT * FROM possible_characters;
