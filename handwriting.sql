@@ -26,7 +26,7 @@
 ---------------------------------
 
 -- height of canvas
-\set height 201
+\set height 200
 
 -- weight of previously smoothed point (0 < n < 1)
 \set smoothingfactor 0.75
@@ -37,19 +37,39 @@
 -- minimum angle for a corner to be recognized
 \set cornerangle 80
 
+------------------------------------
+-- TYPES, DOMAINS AND CONSTRAINTS --
+------------------------------------
+
+DROP TYPE IF EXISTS cardinal_direction;
+CREATE TYPE cardinal_direction AS ENUM('▶', '▲', '◀', '▼');
+
+CREATE OR REPLACE FUNCTION is_corner(angles int[], cornerangle int) RETURNS boolean AS $$
+BEGIN
+  RETURN abs(angles[1] - angles[2]) <= 1 AND
+     abs(angles[array_length(angles, 1)] - angles[array_length(angles, 1) - 1]) <= 1 AND
+     abs(angles[2] - angles[array_length(angles, 1) - 1]) > cornerangle / 16;
+END
+$$ LANGUAGE plpgsql;
+
+
 ----------------------------------
 -- QUERIES, QUERIES AND QUERIES --
 ----------------------------------
 
--- Tabular representation (pos|x|y) of pen stroke
 WITH RECURSIVE
 tablet(pos, x, y) AS (
-  SELECT ordinality AS pos, x, :'height' - y  -- move origin from top left to bottom left
+  -- First step: Convert JSON into tabular representation of pen stroke.
+  -- TODO might be cool to use native path type here, but seems like there's no way to extract or iterate over contained points, making it pretty useless
+  SELECT ordinality AS pos, x, :'height' - y  -- Move origin from top left to bottom left.
   FROM   ROWS FROM(jsonb_to_recordset(:'pen') AS (x int, y int))
          WITH ORDINALITY
 ),
 smooth(pos, x, y) AS (
-  SELECT pos, x :: double precision, y :: double precision  -- because numeric leads to unnecessarily many decimal places
+  -- Smooth pen stroke to remove quantization jitter. Return doubles because the
+  -- more idiomatic numeric type will feature unnecessarily many decimal places
+  -- after a few iterations.
+  SELECT pos, x :: double precision, y :: double precision
   FROM   tablet
   WHERE  pos = 1
 
@@ -62,6 +82,8 @@ smooth(pos, x, y) AS (
   WHERE  t.pos = s.pos + 1
 ),
 thin(pos, x, y) AS (
+  -- Thin stroke by removing all points within a certain distance from most
+  -- recent already thinned point.
   SELECT *
   FROM   smooth
   WHERE  pos = 1
@@ -69,133 +91,144 @@ thin(pos, x, y) AS (
     UNION ALL
 
   SELECT *
-  FROM   (  -- subquery cause no order by in recursive part => check again if that's really necessary
+  FROM   (  -- ORDER BY being illegal in the recursive part of a WITH RECURSIVE necessitates this ugly subquery hack.
     SELECT s.pos, s.x, s.y
     FROM   thin t, smooth s
     WHERE  s.pos > t.pos
-    --AND    |/ (s.x - t.x)^2 + (s.y - t.y)^2 >= :'thinningsize'  -- euclidean distance, TODO if using point datatype, could use "<->" infix op
-    AND    (abs(s.x - t.x) >= :'thinningsize' OR abs(s.y - t.y) >= :'thinningsize')
+    AND    |/ (s.x - t.x)^2 + (s.y - t.y)^2 >= :'thinningsize'  -- TODO if using point datatype, could use "<->" infix op
+    --AND    (abs(s.x - t.x) >= :'thinningsize' OR abs(s.y - t.y) >= :'thinningsize')
     ORDER BY s.pos
     LIMIT 1
   ) AS _
 ),
 curve(pos, x, y, direction) AS (
-  -- order of subtraction reversed between y and x to match drawing
+  -- Compute angle (in integer degrees) between each adjacent pair of points.
+  -- 0 degrees corresponds to both points lying on a horizontal line, with the
+  -- newer point to the right of the older point. 90 degrees means that the
+  -- newer point is directly above the older point. Remaining values follow the
+  -- same pattern (think unit circle).
   SELECT pos, x, y,
-         COALESCE(degrees(-atan2(y - lag(y) OVER (ORDER BY pos),
-                  lag(x) OVER (ORDER BY pos) - x)
-                 ) + 180, 90)  -- first one points up, matches essay implementation
+         COALESCE(degrees(-atan2( y - lag(y) OVER (ORDER BY pos),
+                                 -x + lag(x) OVER (ORDER BY pos))
+                         ) + 180,
+                  90)  -- First point corresponds to "up" direction,
+                       -- matches essay implementation.
   FROM   thin
 ),
--- TODO use curve table
-curve4(pos, direction) AS (
-  -- TODO custom data type for direction? https://www.postgresql.org/docs/9.1/static/datatype-enum.html and https://stackoverflow.com/questions/1827122/converting-an-integer-to-enum-in-postgresql?noredirect=1&lq=1
-  -- TODO do we really need x and y as return values here? no!
-  -- TODO in the original memorandum, this is done using a set of inequalities – ask benjamin whether to replicate or not!
-  SELECT pos, (direction / 90) :: int
+cardinal(pos, direction) AS (
+  -- Compute cardinal direction for each point from angle. Note that this is
+  -- done using a set of inequalities in the essay, which is computationally
+  -- less expensive, but it really doesn't make a difference considering 50
+  -- years' worth of Moore's law between the algorithm's conception and the time
+  -- of this implementation.
+  SELECT pos, (enum_range(NULL :: cardinal_direction))[(direction / 90) :: int]
   FROM curve
 ),
-curve42(pos, direction, direction4) AS (
-  -- with hysteresis zones, see page 26 of pdf -- worth it? ask benjamin
-  SELECT pos, direction, (direction/90) :: int
-  FROM curve
-  WHERE pos = 1
-
-    UNION ALL
-
-  SELECT * FROM
-    (SELECT c.pos,
-            CASE
-              WHEN abs(c.direction - c42.direction) < 8
-              THEN c42.direction
-              ELSE c.direction
-            END,
-            CASE
-              WHEN abs(c.direction - c42.direction) < 8
-              THEN (c42.direction/90) :: int % 4
-              ELSE (c.direction/90) :: int % 4
-            END
-     FROM curve c, curve42 c42
-     WHERE c.pos > c42.pos
-     ORDER BY c.pos
-     LIMIT 1) AS _
-),
-curve4change(pos, direction) AS (
-  -- Only the changes of the cardinal direction.
+--cardinal_hysteresis(pos, actual_direction, direction) AS (
+--  -- Same as above, with with so-called hysteresis zones with a with of 8
+--  -- degrees that keep the emitted cardinal direction from switching around for
+--  -- an around-45-degree stroke.
+--  SELECT pos, direction, (enum_range(NULL :: cardinal_direction))[(direction / 90) :: int]
+--  FROM curve
+--  WHERE pos = 1
+--
+--    UNION ALL
+--
+--  SELECT * FROM
+--    (SELECT c.pos,
+--            CASE
+--              WHEN abs(c.direction - c42.actual_direction) < 8
+--              THEN c42.actual_direction
+--              ELSE c.direction
+--            END,
+--            (enum_range(NULL :: cardinal_direction))[((
+--              CASE
+--                WHEN abs(c.direction - c42.actual_direction) < 8
+--                THEN c42.actual_direction
+--                ELSE c.direction
+--              END) / 90) :: int]
+--     FROM curve c, cardinal_hysteresis c42
+--     WHERE c.pos > c42.pos
+--     ORDER BY c.pos
+--     LIMIT 1) AS _
+--),
+cardinal_change(pos, direction) AS (
+  -- Only keep changes (meaning a new direction that occurs at least twice in
+  -- succession) of the cardinal direction.
   SELECT pos, direction
-  FROM   (SELECT *,
-                 COALESCE(lag(direction, 2) OVER win, -1) <> lag(direction) OVER win
+  FROM   (SELECT pos, direction,  -- *,
+                 COALESCE(lag(direction, 2) OVER win <> lag(direction) OVER win, true)
                  AND lag(direction) OVER win = direction
-          FROM curve4
-          WINDOW win AS (ORDER BY pos)) AS _(pos, direction, isnew)
-  WHERE isnew
+          FROM cardinal  -- cardinal_hysteresis
+          WINDOW win AS (ORDER BY pos)) AS _(pos, direction, is_new)
+  WHERE is_new
 ),
--- TODO use curve table, maybe just emit rounded degrees? would make corner bit simpler
-curve16(pos, x, y, direction) AS (
-  SELECT pos, x, y, (direction / 22.5) :: int
-  FROM curve
-),
-corner(pos, x, y, direction, corner) AS (
-  -- TODO page 27 or memorandum pdf: a corner is detected whenever the pen moves in the same (+-1!) 16-direction for at least two segments, changes direction by at least 90deg, and then proceeds along the new direction (+-1) for at least two segments, either immediately or through a one-segment turn
-  SELECT pos, x, y, direction,
-         CASE
-           WHEN lag(direction) OVER win = lag(direction, 2) OVER win -- one-segment turn
-            AND lead(direction) OVER win = lead(direction, 2) OVER win
-            AND abs(lag(direction) OVER win - lead(direction) OVER win) > :cornerangle / 16
-           THEN true
-           WHEN direction = lag(direction) OVER win  -- immediate direction change
-            AND lead(direction) OVER win = lead(direction, 2) OVER win
-            AND abs(direction - lead(direction) OVER win) > :cornerangle / 16
-           THEN true
-          ELSE false END
-  FROM   curve16
+--corner(pos, x, y, corner) AS (
+--  page 27 or memorandum pdf: a corner is detected whenever the pen moves in the same (+-1!) 16-direction for at least two segments, changes direction by at least 90deg, and then proceeds along the new direction (+-1) for at least two segments, either immediately or through a one-segment turn
+--  SELECT pos, x, y, is_corner(corner, :cornerangle), direction
+--  FROM   (SELECT *,
+--                 array_agg(direction) OVER (ORDER BY pos ROWS BETWEEN 2 PRECEDING AND 2 FOLLOWING) AS corner
+--          FROM (SELECT pos, x, y, (direction / 22.5) :: int AS direction
+--                FROM curve) AS _
+--          WINDOW win AS (ORDER BY pos)) AS _
+--),
+corner(pos, x, y, corner) AS (
+  SELECT pos, x, y, (
+           lag(direction) OVER win = lag(direction, 2) OVER win -- one-segment turn
+           AND lead(direction) OVER win = lead(direction, 2) OVER win
+           AND abs(lag(direction) OVER win - lead(direction) OVER win) > :cornerangle / 16
+         ) OR (
+           direction = lag(direction) OVER win  -- immediate direction change
+           AND lead(direction) OVER win = lead(direction, 2) OVER win
+           AND abs(direction - lead(direction) OVER win) > :cornerangle / 16
+         )
+  FROM   (SELECT pos, x, y, (direction / 22.5) :: int AS direction
+          FROM curve) AS _
   WINDOW win AS (ORDER BY pos)
-  -- TODO might use first_value and nth value etc here with something like (ORDER BY m.x ROWS BETWEEN 2 PRECEDING AND 2 FOLLOWING), use case when 5/4 = count(*) over window to handle edge cases
-  -- TODO don't really need to return anything but pos here
+
   -- TODO write two custom aggregates taking five/four values with cardinality/row_number(), returning bool?
 ),
 aabb(xmin, xmax, ymin, ymax, aspect, width, height, centerx, centery) AS (
-  -- note that width, height, center not in inches, but in px
-  -- TODO ask benjamin if i could use a box here, and later on width etc. also: use point datatype in general?
+  -- Define an axis-aligned bounding box (AABB) around the drawn letter and
+  -- compute some statistics.
   SELECT min(x),
          max(x),
          min(y),
          max(y),
-         (max(y)-min(y)) / (max(x)-min(x)),
-         max(x)-min(x),
-         max(y)-min(y),
-         min(x)+(max(x)-min(x))/2,
-         min(y)+(max(y)-min(y))/2
+         (max(y) - min(y)) / (max(x) - min(x)),
+         max(x) - min(x),
+         max(y) - min(y),
+         min(x) + (max(x) - min(x)) / 2,
+         min(y) + (max(y) - min(y)) / 2
   FROM smooth
 ),
-startgrid(n) AS (
+start_grid(n) AS (
+  -- TODO togrid function
+  -- TODO if line ends in top middle or middle right => problem? use a.width/height + 1?
   SELECT greatest(0, 15 - ((floor(4 * (s.x-a.xmin)/a.width) :: int) + (floor(4 * (s.y-a.ymin)/a.height) :: int) * 4))
   FROM smooth s, aabb a
   ORDER BY pos
   LIMIT 1
-  --FROM (VALUES (1,25,25), (2,75,25), (3,25,75), (4,75,75), (5,51,51), (6,111,34)) AS s(pos,x,y),
-  --     (VALUES (0, 0, 201, 201)) AS a(xmin, ymin, width, height)
-  --ORDER BY s.pos
 ),
-stopgrid(n) AS (
+stop_grid(n) AS (
   SELECT greatest(0, 15 - ((floor(4 * (s.x-a.xmin)/a.width) :: int) + (floor(4 * (s.y-a.ymin)/a.height) :: int) * 4))
   FROM smooth s, aabb a
   ORDER BY pos DESC
   LIMIT 1
 ),
-cornergrid(pos, n) AS (
-  SELECT c.pos, 15 - ((floor(4 * (c.x-a.xmin)/a.width) :: int) + (floor(4 * (c.y-a.ymin)/a.height) :: int) * 4)
+corner_grid(pos, n) AS (
+  SELECT c.pos, greatest(0, 15 - ((floor(4 * (c.x-a.xmin)/a.width) :: int) + (floor(4 * (c.y-a.ymin)/a.height) :: int) * 4))
   FROM corner c, aabb a
   WHERE c.corner
 ),
 features(center, start, stop, directions, corners, width, height, aspect) AS (
   SELECT point(centerx, centery),
-         (TABLE startgrid),
-         (TABLE stopgrid),
+         (TABLE start_grid),
+         (TABLE stop_grid),
          (SELECT array_agg(c.direction ORDER BY c.pos)
-          FROM   curve4change c),
+          FROM   cardinal_change c),
          (SELECT array_agg(c.n ORDER BY c.pos)
-          FROM   cornergrid c),
+          FROM   corner_grid c),
          a.width,
          a.height,
          a.aspect
@@ -272,7 +305,8 @@ possible_characters(characters) AS (
                     ('{1,0,2,0}', '{"B"}', NULL),
                     ('{1,0}', '{"F"}', NULL)
                  ) AS map(first_four_directions, possible_characters, next_step)
-  WHERE directions[1:4] = first_four_directions
+  WHERE directions[1:4] = (SELECT array_agg((ENUM_RANGE(NULL::cardinal_direction))[s.t])
+                           FROM unnest(first_four_directions) s(t))
 )
 
-SELECT * FROM possible_characters;
+SELECT * FROM corner;
