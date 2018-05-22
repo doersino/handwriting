@@ -26,6 +26,7 @@ h1 {
 svg {
     background-color: gray;
     touch-action: none;
+    cursor: crosshair;
 }
 circle {
     stroke-width: 0px;
@@ -34,9 +35,10 @@ circle {
 }
 
 #tablet {
-    background-color: #222;
+    background-color: #333;
     text-align: center;
     margin-bottom: 1.5rem;
+    line-height: 0;
 }
 
 section {
@@ -44,12 +46,14 @@ section {
     line-height: 1.3rem;
 }
 
+#dump, #query {
+    display: none;
+}
+/*
 #dump {
     height: 3.5rem;
     overflow: hidden;
-    display: none;
-}
-#dump:before {
+}#dump:before {
     content: '';
     width: calc(100% - 3rem);
     height: 3.6rem;
@@ -65,7 +69,7 @@ section {
 }
 #dump:hover:before {
     display: none;
-}
+}*/
 
 #query {
     display: none;

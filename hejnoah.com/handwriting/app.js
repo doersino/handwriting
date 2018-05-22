@@ -1,6 +1,6 @@
 (function () {
 
-var pagewidth = Math.min(document.documentElement.clientWidth - 100, 500);
+var pagewidth = Math.min(document.documentElement.clientWidth, 500);
 
 var strokescale = function(s) {
     var pointscale = d3.scaleQuantize()
@@ -58,7 +58,7 @@ var tablet = d3.select("#tablet");
 
 var canvas = tablet.append("svg")
     .attr("width", pagewidth)
-    .attr("height", pagewidth)
+    .attr("height", pagewidth * 0.7)
     .on("mousedown", mousedown)
     .on("mouseup", mouseup)
     .on("touchstart", touchstart)

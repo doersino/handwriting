@@ -37,6 +37,9 @@
 -- Minimum angle for a corner to be recognized.
 \set cornerangle 80
 
+\timing on
+\pset border 2
+
 
 ----------------------------------------
 -- TYPES, FUNCTIONS AND LOOKUP TABLE  --

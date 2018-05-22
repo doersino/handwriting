@@ -9,6 +9,10 @@ import cgi
 import json
 import subprocess
 
+import traceback
+import sys
+sys.stderr = sys.stdout
+
 print("Content-type: text/html")
 print()
 
@@ -22,5 +26,5 @@ else:
     try:
         print(subprocess.check_output(["bash", "backendhelper.sh", pen]).decode("utf-8").strip())
     except subprocess.CalledProcessError as e:
-        #print(something went wrong, sorry about that)
+        print('something went wrong, sorry about that')
         raise
