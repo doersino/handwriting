@@ -1,6 +1,6 @@
 (function () {
 
-var pagewidth = Math.min(document.documentElement.clientWidth, 500);
+var pagewidth = Math.min(document.documentElement.clientWidth - 100, 500);
 
 var strokescale = function(s) {
     var pointscale = d3.scaleQuantize()
@@ -30,7 +30,7 @@ var performquery = function(s) {
     var i = 0;
     var load = ["/", "-", "\\", "|"];
     var loader = setInterval(function() {
-        query.selectAll("span").remove();  // TODO make more effiecient or just get rid of this
+        query.selectAll("span").remove();  // TODO make more efficient or just get rid of this
         query.append("span").attr("class", "query").text(load[i]);
         i++;
     }, 50);
@@ -48,7 +48,7 @@ var performquery = function(s) {
         }
     }
 
-    xmlhttp.open("POST", "test.py", true);
+    xmlhttp.open("POST", "backend.py", true);
     xmlhttp.setRequestHeader("Content-type","application/x-www-form-urlencoded");
     xmlhttp.send("pen=" + s);
 };
