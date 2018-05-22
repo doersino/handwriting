@@ -8,12 +8,6 @@
 import cgi
 import json
 import subprocess
-#from subprocess import Popen, PIPE
-
-#import traceback
-#import sys
-#import os
-#sys.stderr = sys.stdout
 
 print("Content-type: text/html")
 print()
@@ -26,7 +20,7 @@ else:
     pen = str(validated).replace("'", "\"")
 
     try:
-        print(subprocess.check_output(["bash", "backendhelper.sh", pen], stderr=PIPE).decode("utf-8").strip())
+        print(subprocess.check_output(["bash", "backendhelper.sh", pen]).decode("utf-8").strip())
     except subprocess.CalledProcessError as e:
         #print(something went wrong, sorry about that)
         raise
