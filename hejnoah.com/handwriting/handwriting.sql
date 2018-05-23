@@ -25,9 +25,6 @@
 -- TOGGLES, KNOBS AND SWITCHES --
 ---------------------------------
 
--- Height of canvas.
-\set height 200
-
 -- Weight of previously smoothed point (0 < n < 1).
 \set smoothingfactor 0.75
 
@@ -71,7 +68,7 @@ tablet(pos, x, y) AS (
   -- box types throughout the rest of the query), but seems like there's no way
   -- to extract a path's constituent points (apart from parsing them from a
   -- textual representation, which seems silly), making it pretty useless here.
-  SELECT ordinality AS pos, x, :'height' - y  -- Move origin from top left to bottom left.
+  SELECT ordinality AS pos, x, y
   FROM   ROWS FROM(jsonb_to_recordset(:'pen') AS (x int, y int))
          WITH ORDINALITY
 ),

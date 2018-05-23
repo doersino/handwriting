@@ -1,14 +1,15 @@
 (function () {
 
-var pagewidth = Math.min(document.documentElement.clientWidth, 500);
+var svgwidth = Math.min(document.documentElement.clientWidth, 500);
+var svgheight = 0.7 * Math.min(document.documentElement.clientWidth, 500);
 
 var strokescale = function(s) {
     var pointscale = d3.scaleQuantize()
-        .domain([0, pagewidth])
+        .domain([0, svgwidth])
         .range(Array.from(Array(200).keys()));
 
     for (var i = s.length - 1; i >= 0; i--) {
-        s[i] = {x:pointscale(s[i]['x']), y:pointscale(s[i]['y'])};
+        s[i] = {x:pointscale(s[i]['x']), y:pointscale(svgheight - s[i]['y'])};
     }
     return s;
 };
@@ -57,8 +58,8 @@ var stroke = [];
 var tablet = d3.select("#tablet");
 
 var canvas = tablet.append("svg")
-    .attr("width", pagewidth)
-    .attr("height", pagewidth * 0.7)
+    .attr("width", svgwidth)
+    .attr("height", svgheight)
     .on("mousedown", mousedown)
     .on("mouseup", mouseup)
     .on("touchstart", touchstart)
