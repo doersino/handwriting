@@ -35,6 +35,8 @@ var performquery = function(s) {
         query.append("span").attr("class", "query").text(load[i]);
         i++;
     }, 50);*/
+    query.selectAll("span").remove();
+    query.append("span").attr("class", "query").text("Working...");
 
     var xmlhttp = new XMLHttpRequest();
 
