@@ -28,13 +28,13 @@ var performquery = function(s) {
     query = d3.select("#query");
     query.style("display", "block");
 
-    var i = 0;
+    /*var i = 0;
     var load = ["/", "-", "\\", "|"];
     var loader = setInterval(function() {
-        query.selectAll("span").remove();  // TODO make more efficient or just get rid of this
+        query.selectAll("span").remove();
         query.append("span").attr("class", "query").text(load[i]);
         i++;
-    }, 50);
+    }, 50);*/
 
     var xmlhttp = new XMLHttpRequest();
 
@@ -44,7 +44,6 @@ var performquery = function(s) {
             query.selectAll("span").remove();
             query.append("span").attr("class", "query").text(xmlhttp.responseText);
             clearInterval(loader);
-
             // TODO draw characteristics into d3 graph? might be tricky because of scaling
         }
     }
