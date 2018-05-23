@@ -33,6 +33,8 @@
 DROP TYPE IF EXISTS cardinal_direction CASCADE;
 CREATE TYPE cardinal_direction AS ENUM('▶', '▲', '◀', '▼');
 
+-- Compute position on 4x4 grid from an (x,y) coordinate pair. Used during
+-- assembly of features table.
 CREATE OR REPLACE FUNCTION gridpos(width real, height real, xmin real, ymin real, x real, y real) RETURNS int AS $$
 BEGIN
   RETURN greatest(0,
@@ -41,75 +43,77 @@ BEGIN
 END
 $$ LANGUAGE plpgsql;
 
--- TODO lookup
+-- Initial lookup table: Maps an array of up to four starting directions of a
+-- stroke to a set of potential characters.
 DROP TABLE IF EXISTS lookup1;
 CREATE TABLE lookup1 (
   first_four_directions cardinal_direction[],
-  potential_characters  char[],
-  next_step             text  -- Unused.
+  potential_characters  char[]
 );
 INSERT INTO lookup1 VALUES
-  ('{"▼"}',             '{"I"}',                               NULL),
-  ('{"▼","◀"}',         '{"J"}',                               NULL),
-  ('{"▼","◀","▲"}',     '{"O","J","X","U"}',                'discOJXU'),
-  ('{"▼","◀","▲","▶"}', '{"X","O","U"}',                     'disc0UX'),
-  ('{"▼","◀","▶","▲"}', '{"X"}',                               NULL),
-  ('{"▼","▶"}',         '{"L"}',                               NULL),
-  ('{"▼","▶","◀"}',     '{"6"}',                               NULL),
-  ('{"▼","▶","◀","▼"}', '{"4"}',                               NULL),
-  ('{"▼","▶","▲"}',     '{"O","U"}',                          'discOU'),
-  ('{"▼","▶","▲","▼"}', '{"4","Y"}',                          'disc4Y'),
-  ('{"▼","▶","▲","◀"}', '{"6","8","O","D","4"}',           'disc680D4'),
-  ('{"▼","▶","▲","▶"}', '{"8"}',                               NULL),
-  ('{"▼","▲"}',         '{"V"}',                               NULL),
-  ('{"▼","▲","▼"}',     '{"K"}',                               NULL),
-  ('{"▼","▲","▼","▲"}', '{"W"}',                               NULL),
-  ('{"▼","▲","▼","▶"}', '{"W","K"}',                          'discWK'),
-  ('{"▼","▲","▶","▼"}', '{"H"}',                               NULL),
-  ('{"◀","▼"}',         '{"F"}',                               NULL),
-  ('{"◀","▼","◀"}',     '{"S"}',                               NULL),
-  ('{"◀","▼","◀","▼"}', '{"E"}',                               NULL),
-  ('{"◀","▼","▶","◀"}', '{"E","6"}',                          'discE6'),
-  ('{"◀","▶","▼","◀"}', '{"S","8"}',                          'discS8'),
-  ('{"◀","▶","▼","▶"}', '{"E"}',                               NULL),
-  ('{"◀","▶","◀"}',     '{"S"}',                               NULL),
-  ('{"◀","▶","◀","▼"}', '{"E"}',                               NULL),
-  ('{"◀","▶","◀","▶"}', '{"E"}',                               NULL),
-  ('{"◀","▼","▶"}',     '{"C"}',                               NULL),
-  ('{"◀","▼","▶","▼"}', '{"5","8","9","S","E"}',           'disc589SE'),
-  ('{"◀","▼","▶","▲"}', '{"6","O","C","G","9"}',           'disc6OCG9'),
-  ('{"◀","▲","▶","▼"}', '{"9","8","Q"}',                     'disc98Q'),
-  ('{"▶","◀","▼"}',     '{"7"}',                               NULL),
-  ('{"▶","◀","▼","▶"}', '{"3","2","Z"}',                     'disc32Z'),
-  ('{"▶","◀","▶","◀"}', '{"3"}',                               NULL),
-  ('{"▶","◀","▶"}',     '{"2","Z"}',                          'disc2Z'),
-  ('{"▶","◀","▶","▼"}', '{"3"}',                               NULL),
-  ('{"▶","▼"}',         '{"7","1"}',                          'disc71'),
-  ('{"▶","▼","◀"}',     '{"7","3"}',                          'disc73'),
-  ('{"▶","▼","◀","▼"}', '{"2","3"}',                          'disc32'),
-  ('{"▶","▼","◀","▲"}', '{"O","2","3","U","X"}',           'disc023UX'),
-  ('{"▶","▼","▶","▼"}', '{"3"}',                               NULL),
-  ('{"▶","▼","▶"}',     '{"2","Z"}',                          'disc2Z'),
-  ('{"▶","▼","◀","▶"}', '{"3","2","Z"}',                     'disc32Z'),
-  ('{"▲","▼"}',         '{"1","A"}',                          'disc1A'),
-  ('{"▲","▼","◀"}',     '{"A"}',                               NULL),
-  ('{"▲","▼","▶"}',     '{"2"}',                               NULL),
-  ('{"▲","▼","▲"}',     '{"N","A"}',                          'discNA'),
-  ('{"▲","▼","▲","◀"}', '{"A"}',                               NULL),
-  ('{"▲","▼","▲","▼"}', '{"M","N"}',                          'discNM'),
-  ('{"▲","▼","▲","▶"}', '{"M","N"}',                          'discNM'),
-  ('{"▲","▼","▶","▲"}', '{"M","N"}',                          'discNM'),
-  ('{"▲","▼","▶","▼"}', '{"M","N"}',                          'discNM'),
-  ('{"▲","▶","▲"}',     '{"M","N"}',                          'discNM'),
-  ('{"▲","▶","▲","▼"}', '{"M","N"}',                     'discNM'),
-  ('{"▲","▶","▼","▲"}', '{"M","N","A"}',                 'discNMA'),
-  ('{"▲","◀","▼","▶"}', '{"8","9","C","G","S","6"}',     'disc89CGS6'),
-  ('{"▲","◀","▶"}',     '{"T"}',                         NULL),
-  ('{"▲","▶","▼","▶"}', '{"2","3","8","B","D","P","R"}', 'disc238BDPR'),
-  ('{"▲","▶","▼","◀"}', '{"2","3","8","B","D","P","R"}', 'disc238BDPR'),
-  ('{"▲","▶","◀","▶"}', '{"B"}',                         NULL),
-  ('{"▲","▶"}',         '{"F"}',                         NULL);  -- TODO spaces in second array, but not first???
+  ('{"▼"}',             '{"I"}'),
+  ('{"▼","◀"}',         '{"J"}'),
+  ('{"▼","◀","▲"}',     '{"O","J","X","U"}'),
+  ('{"▼","◀","▲","▶"}', '{"X","O","U"}'),
+  ('{"▼","◀","▶","▲"}', '{"X"}'),
+  ('{"▼","▶"}',         '{"L"}'),
+  ('{"▼","▶","◀"}',     '{"6"}'),
+  ('{"▼","▶","◀","▼"}', '{"4"}'),
+  ('{"▼","▶","▲"}',     '{"O","U"}'),
+  ('{"▼","▶","▲","▼"}', '{"4","Y"}'),
+  ('{"▼","▶","▲","◀"}', '{"6","8","O","D","4"}'),
+  ('{"▼","▶","▲","▶"}', '{"8"}'),
+  ('{"▼","▲"}',         '{"V"}'),
+  ('{"▼","▲","▼"}',     '{"K"}'),
+  ('{"▼","▲","▼","▲"}', '{"W"}'),
+  ('{"▼","▲","▼","▶"}', '{"W","K"}'),
+  ('{"▼","▲","▶","▼"}', '{"H"}'),
+  ('{"◀","▼"}',         '{"F"}'),
+  ('{"◀","▼","◀"}',     '{"S"}'),
+  ('{"◀","▼","◀","▼"}', '{"E"}'),
+  ('{"◀","▼","▶","◀"}', '{"E","6"}'),
+  ('{"◀","▶","▼","◀"}', '{"S","8"}'),
+  ('{"◀","▶","▼","▶"}', '{"E"}'),
+  ('{"◀","▶","◀"}',     '{"S"}'),
+  ('{"◀","▶","◀","▼"}', '{"E"}'),
+  ('{"◀","▶","◀","▶"}', '{"E"}'),
+  ('{"◀","▼","▶"}',     '{"C"}'),
+  ('{"◀","▼","▶","▼"}', '{"5","8","9","S","E"}'),
+  ('{"◀","▼","▶","▲"}', '{"6","O","C","G","9"}'),
+  ('{"◀","▲","▶","▼"}', '{"9","8","Q"}'),
+  ('{"▶","◀","▼"}',     '{"7"}'),
+  ('{"▶","◀","▼","▶"}', '{"3","2","Z"}'),
+  ('{"▶","◀","▶","◀"}', '{"3"}'),
+  ('{"▶","◀","▶"}',     '{"2","Z"}'),
+  ('{"▶","◀","▶","▼"}', '{"3"}'),
+  ('{"▶","▼"}',         '{"7","1"}'),
+  ('{"▶","▼","◀"}',     '{"7","3"}'),
+  ('{"▶","▼","◀","▼"}', '{"2","3"}'),
+  ('{"▶","▼","◀","▲"}', '{"O","2","3","U","X"}'),
+  ('{"▶","▼","▶","▼"}', '{"3"}'),
+  ('{"▶","▼","▶"}',     '{"2","Z"}'),
+  ('{"▶","▼","◀","▶"}', '{"3","2","Z"}'),
+  ('{"▲","▼"}',         '{"1","A"}'),
+  ('{"▲","▼","◀"}',     '{"A"}'),
+  ('{"▲","▼","▶"}',     '{"2"}'),
+  ('{"▲","▼","▲"}',     '{"N","A"}'),
+  ('{"▲","▼","▲","◀"}', '{"A"}'),
+  ('{"▲","▼","▲","▼"}', '{"M","N"}'),
+  ('{"▲","▼","▲","▶"}', '{"M","N"}'),
+  ('{"▲","▼","▶","▲"}', '{"M","N"}'),
+  ('{"▲","▼","▶","▼"}', '{"M","N"}'),
+  ('{"▲","▶","▲"}',     '{"M","N"}'),
+  ('{"▲","▶","▲","▼"}', '{"M","N"}'),
+  ('{"▲","▶","▼","▲"}', '{"M","N","A"}'),
+  ('{"▲","◀","▼","▶"}', '{"8","9","C","G","S","6"}'),
+  ('{"▲","◀","▶"}',     '{"T"}'),
+  ('{"▲","▶","▼","▶"}', '{"2","3","8","B","D","P","R"}'),
+  ('{"▲","▶","▼","◀"}', '{"2","3","8","B","D","P","R"}'),
+  ('{"▲","▶","◀","▶"}', '{"B"}'),
+  ('{"▲","▶"}',         '{"F"}');
 
+-- Final lookup table: Narrows result of initial lookup down based on extracted
+-- features.
 DROP TABLE IF EXISTS lookup2;
 CREATE TABLE lookup2 (
   potential_characters char[],
@@ -120,7 +124,12 @@ CREATE TABLE lookup2 (
   aspect_range numrange
 );
 INSERT INTO lookup2  -- All single-character patterns from initial lookup table.
-  SELECT potential_characters, potential_characters[1], NULL, NULL, NULL, NULL
+  SELECT DISTINCT ON (potential_characters[1]) potential_characters,
+                                               potential_characters[1],
+                                               NULL,
+                                               NULL,
+                                               NULL,
+                                               NULL
   FROM   lookup1
   WHERE  array_length(potential_characters, 1) = 1;
 INSERT INTO lookup2 VALUES
@@ -279,7 +288,7 @@ corner(pos, x, y, corner) AS (
 --          WINDOW win AS (ORDER BY pos)) AS _
 --),
 aabb(xmin, xmax, ymin, ymax, aspect, width, height, centerx, centery) AS (
-  -- Define an axis-aligned bounding box (AABB) around the drawn letter and
+  -- Define an axis-aligned bounding box (AABB) around the drawn character and
   -- output some statistics.
   SELECT min(x),
          max(x),
@@ -315,7 +324,7 @@ corner_grid(pos, n) AS (
 features(center, start, stop, directions, corners, width, height, aspect) AS (
   -- Assemble summary of the extracted features, ready for pattern-matching in
   -- the next step. This single-row table should contain all information
-  -- required to identify the letter corresponding to the input pen stroke.
+  -- required to identify the character corresponding to the input pen stroke.
   SELECT point(centerx, centery),
          (TABLE start_grid),
          (TABLE stop_grid),
@@ -350,4 +359,4 @@ prettyprint(output) AS (
   FROM   potential_characters, character
 )
 
-SELECT * FROM character;  -- TODO "letter" instead of "character"?
+SELECT * FROM character;
