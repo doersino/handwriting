@@ -13,18 +13,22 @@ import traceback
 import sys
 sys.stderr = sys.stdout
 
-print("Content-type: text/html")
-print()
+# via https://stackoverflow.com/a/14860540
+def enc_print(string='', encoding='utf8'):
+    sys.stdout.buffer.write(string.encode(encoding) + b'\n')
+
+enc_print("Content-type: text/html")
+enc_print()
 
 form = cgi.FieldStorage()
 if not form or "pen" not in form:
-    print("error: no data received")
+    enc_print("no data received :(")
 else:
     validated = json.loads(form["pen"].value)
     pen = str(validated).replace("'", "\"")
 
     try:
-        print(subprocess.check_output(["bash", "backendhelper.sh", pen]).decode("utf-8").strip())
+        enc_print(subprocess.check_output(["bash", "backendhelper.sh", pen]).decode("utf-8").strip())
     except subprocess.CalledProcessError as e:
-        print('something went wrong, sorry about that')
+        enc_print('something went wrong, sorry about that :(')
         raise

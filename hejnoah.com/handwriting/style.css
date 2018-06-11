@@ -46,7 +46,7 @@ section {
     line-height: 1.3rem;
 }
 
-#dump, #query {
+#dump, #query, #tuples {
     display: none;
 }
 /*
@@ -71,10 +71,6 @@ section {
     display: none;
 }*/
 
-#query {
-    display: none;
-}
-
 span.query {
     white-space: pre;
 }
@@ -87,4 +83,11 @@ em {
     background-color: #444;
     font-style: normal;
     vertical-align: top;
+}
+
+img {
+    width: 100%;
+    max-width: 500px;
+    margin-top: 1rem;
+    display: block;
 }

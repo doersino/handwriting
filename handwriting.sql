@@ -2,24 +2,20 @@
 -- https://jackschaedler.github.io/handwriting-recognition/
 --
 -- Usage:
--- Create a databased "handwriting", then use the enclosed HTML file to generate
--- a pen stroke, then run the following on PostgreSQL 10 or newer, replacing the
+-- Create a databased "handwriting", use the enclosed HTML file to generate a
+-- pen stroke, then run the following on PostgreSQL 10 or newer, replacing the
 -- "PEN_STROKE" placeholder with the generated pen stroke:
 -- psql -d handwriting -f handwriting.sql -v pen='PEN_STROKE'
 
 -- Original example.
 --\set pen '[{"x":1, "y":2},{"x":2, "y":4}]'
 
--- A
+-- A.
 --\set pen '[ { "x": 37, "y": 31 }, { "x": 37, "y": 31 }, { "x": 37, "y": 34 }, { "x": 37, "y": 39 }, { "x": 38, "y": 43 }, { "x": 41, "y": 57 }, { "x": 44, "y": 66 }, { "x": 48, "y": 76 }, { "x": 52, "y": 86 }, { "x": 54, "y": 92 }, { "x": 56, "y": 96 }, { "x": 58, "y": 99 }, { "x": 59, "y": 101 }, { "x": 59, "y": 102 }, { "x": 60, "y": 102 }, { "x": 60, "y": 102 }, { "x": 60, "y": 101 }, { "x": 60, "y": 98 }, { "x": 61, "y": 90 }, { "x": 64, "y": 80 }, { "x": 65, "y": 73 }, { "x": 67, "y": 66 }, { "x": 69, "y": 60 }, { "x": 71, "y": 52 }, { "x": 72, "y": 49 }, { "x": 72, "y": 46 }, { "x": 73, "y": 44 }, { "x": 74, "y": 42 }, { "x": 74, "y": 41 }, { "x": 74, "y": 40 }, { "x": 74, "y": 40 }, { "x": 74, "y": 39 }, { "x": 74, "y": 39 }, { "x": 74, "y": 39 }, { "x": 74, "y": 39 }, { "x": 74, "y": 39 }, { "x": 74, "y": 39 }, { "x": 72, "y": 40 }, { "x": 67, "y": 43 }, { "x": 63, "y": 45 }, { "x": 60, "y": 47 }, { "x": 58, "y": 49 }, { "x": 56, "y": 50 }, { "x": 54, "y": 52 }, { "x": 52, "y": 52 }, { "x": 51, "y": 53 }, { "x": 50, "y": 54 }, { "x": 50, "y": 54 }, { "x": 50, "y": 54 }, { "x": 49, "y": 54 }, { "x": 49, "y": 54 }, { "x": 49, "y": 54 }, { "x": 49, "y": 54 }, { "x": 49, "y": 55 }, { "x": 49, "y": 55 }, { "x": 49, "y": 55 }, { "x": 48, "y": 55 }, { "x": 48, "y": 55 }, { "x": 48, "y": 55 }, { "x": 47, "y": 56 }, { "x": 46, "y": 56 }, { "x": 46, "y": 56 }, { "x": 46, "y": 56 }, { "x": 46, "y": 56 } ]'
 
--- S
+-- S.
 --\set pen '[ { "x": 127, "y": 115 }, { "x": 127, "y": 115 }, { "x": 126, "y": 115 }, { "x": 124, "y": 115 }, { "x": 120, "y": 115 }, { "x": 116, "y": 115 }, { "x": 112, "y": 115 }, { "x": 108, "y": 115 }, { "x": 104, "y": 114 }, { "x": 101, "y": 112 }, { "x": 98, "y": 110 }, { "x": 96, "y": 107 }, { "x": 94, "y": 104 }, { "x": 93, "y": 102 }, { "x": 92, "y": 98 }, { "x": 91, "y": 96 }, { "x": 91, "y": 93 }, { "x": 91, "y": 90 }, { "x": 94, "y": 87 }, { "x": 96, "y": 84 }, { "x": 99, "y": 82 }, { "x": 102, "y": 81 }, { "x": 106, "y": 80 }, { "x": 108, "y": 79 }, { "x": 115, "y": 76 }, { "x": 120, "y": 73 }, { "x": 124, "y": 71 }, { "x": 128, "y": 69 }, { "x": 130, "y": 68 }, { "x": 133, "y": 65 }, { "x": 135, "y": 63 }, { "x": 136, "y": 60 }, { "x": 137, "y": 57 }, { "x": 138, "y": 53 }, { "x": 138, "y": 49 }, { "x": 138, "y": 46 }, { "x": 137, "y": 43 }, { "x": 132, "y": 40 }, { "x": 126, "y": 37 }, { "x": 116, "y": 36 }, { "x": 106, "y": 34 }, { "x": 100, "y": 34 }, { "x": 92, "y": 34 }, { "x": 90, "y": 35 }, { "x": 87, "y": 36 } ]'
 
---\set pen '[ { "x": 58, "y": 109 }, { "x": 58, "y": 109 }, { "x": 58, "y": 107 }, { "x": 58, "y": 102 }, { "x": 58, "y": 99 }, { "x": 58, "y": 85 }, { "x": 58, "y": 75 }, { "x": 58, "y": 66 }, { "x": 58, "y": 60 }, { "x": 60, "y": 50 }, { "x": 62, "y": 43 }, { "x": 65, "y": 38 }, { "x": 69, "y": 33 }, { "x": 75, "y": 28 }, { "x": 79, "y": 28 }, { "x": 83, "y": 27 }, { "x": 85, "y": 27 }, { "x": 92, "y": 28 }, { "x": 96, "y": 30 }, { "x": 100, "y": 32 }, { "x": 104, "y": 36 }, { "x": 108, "y": 40 }, { "x": 111, "y": 45 }, { "x": 114, "y": 51 }, { "x": 116, "y": 57 }, { "x": 118, "y": 63 }, { "x": 119, "y": 72 }, { "x": 120, "y": 78 }, { "x": 121, "y": 86 }, { "x": 122, "y": 90 } ]'
---\set pen '[ { "x": 52, "y": 75 }, { "x": 52, "y": 75 }, { "x": 52, "y": 75 }, { "x": 53, "y": 74 }, { "x": 56, "y": 70 }, { "x": 65, "y": 62 }, { "x": 74, "y": 56 }, { "x": 83, "y": 53 }, { "x": 100, "y": 52 }, { "x": 109, "y": 52 }, { "x": 120, "y": 54 }, { "x": 129, "y": 60 }, { "x": 135, "y": 68 }, { "x": 138, "y": 77 }, { "x": 138, "y": 88 }, { "x": 135, "y": 100 }, { "x": 127, "y": 110 }, { "x": 106, "y": 122 }, { "x": 91, "y": 125 }, { "x": 78, "y": 125 }, { "x": 72, "y": 123 }, { "x": 66, "y": 119 } ]'
-
-\set pen '[ { "x": 113, "y": 109 }, { "x": 113, "y": 109 }, { "x": 112, "y": 109 }, { "x": 110, "y": 109 }, { "x": 107, "y": 109 }, { "x": 102, "y": 110 }, { "x": 96, "y": 110 }, { "x": 92, "y": 111 }, { "x": 88, "y": 111 }, { "x": 84, "y": 111 }, { "x": 84, "y": 111 }, { "x": 82, "y": 112 }, { "x": 82, "y": 112 }, { "x": 82, "y": 112 }, { "x": 82, "y": 112 }, { "x": 82, "y": 111 }, { "x": 82, "y": 110 }, { "x": 82, "y": 106 }, { "x": 82, "y": 101 }, { "x": 82, "y": 96 }, { "x": 82, "y": 91 }, { "x": 82, "y": 89 }, { "x": 82, "y": 86 }, { "x": 82, "y": 85 }, { "x": 81, "y": 84 }, { "x": 81, "y": 82 }, { "x": 81, "y": 81 }, { "x": 80, "y": 81 }, { "x": 80, "y": 81 }, { "x": 80, "y": 81 }, { "x": 80, "y": 81 }, { "x": 80, "y": 81 }, { "x": 81, "y": 82 }, { "x": 82, "y": 82 }, { "x": 84, "y": 83 }, { "x": 86, "y": 83 }, { "x": 90, "y": 83 }, { "x": 96, "y": 82 }, { "x": 100, "y": 81 }, { "x": 102, "y": 79 }, { "x": 105, "y": 77 }, { "x": 107, "y": 75 }, { "x": 108, "y": 74 }, { "x": 110, "y": 72 }, { "x": 111, "y": 70 }, { "x": 112, "y": 68 }, { "x": 112, "y": 67 }, { "x": 113, "y": 65 }, { "x": 113, "y": 62 }, { "x": 113, "y": 60 }, { "x": 113, "y": 58 }, { "x": 113, "y": 56 }, { "x": 112, "y": 54 }, { "x": 109, "y": 51 }, { "x": 106, "y": 50 }, { "x": 105, "y": 49 }, { "x": 98, "y": 48 }, { "x": 92, "y": 47 }, { "x": 87, "y": 47 }, { "x": 82, "y": 47 }, { "x": 79, "y": 48 }, { "x": 77, "y": 48 }, { "x": 75, "y": 48 }, { "x": 75, "y": 48 } ]'
 
 ---------------------------------
 -- TOGGLES, KNOBS AND SWITCHES --
@@ -29,12 +25,12 @@
 \set smoothingfactor 0.75
 
 -- Size of thinning box in px (roughly 10x the essay values).
-\set thinningsize 7
+\set thinningsize 5
 
 -- Minimum angle for a corner to be recognized.
 \set cornerangle 90
 
--- Make things a bit nicer.
+-- Ask psql to put on some makeup.
 \timing on
 \pset border 2
 
@@ -44,7 +40,19 @@
 ----------------------------------------
 
 DROP TYPE IF EXISTS cardinal_direction CASCADE;
-CREATE TYPE cardinal_direction AS ENUM('-right-', '-up-', '-left-', '-down-');
+CREATE TYPE cardinal_direction AS ENUM('▶', '▲', '◀', '▼');
+
+-- Compute absolute difference between two angles (which is trivial in most
+-- cases but not when the two angles cross 0, e.g. when alpha = 350 and beta =
+-- 10) given in degrees using the formula atan2(sin(a-b), cos(a-b)) as per
+-- https://stackoverflow.com/a/2007279.
+CREATE OR REPLACE FUNCTION angdiff(alpha double precision,
+                                   beta double precision) RETURNS double precision AS $$
+BEGIN
+  RETURN abs(degrees(atan2(sin(radians(alpha - beta)),
+                           cos(radians(alpha - beta)))));
+END
+$$ LANGUAGE plpgsql;
 
 -- Compute position on 4x4 grid from an (x,y) coordinate pair. Used during
 -- assembly of features table.
@@ -67,87 +75,86 @@ CREATE TABLE lookup1 (
   potential_characters  char[]
 );
 INSERT INTO lookup1 VALUES
-  ('{"-down-"}',             '{"I"}'),
-  ('{"-down-","-left-"}',         '{"J"}'),
-  ('{"-down-","-left-","-up-"}',     '{"O","J","X","U"}'),
-  ('{"-down-","-left-","-up-","-right-"}', '{"X","O","U"}'),
-  ('{"-down-","-left-","-right-"}', '{"X"}'),
-  ('{"-down-","-left-","-right-","-up-"}', '{"X"}'),
-  ('{"-down-","-right-"}',         '{"L"}'),
-  ('{"-down-","-right-","-left-"}',     '{"6"}'),
-  ('{"-down-","-right-","-left-","-down-"}', '{"4"}'),
-  ('{"-down-","-right-","-up-"}',     '{"O","U"}'),
-  ('{"-down-","-right-","-up-","-down-"}', '{"4","Y"}'),
-  ('{"-down-","-right-","-up-","-left-"}', '{"6","8","O","D","4"}'),
-  ('{"-down-","-right-","-up-","-right-"}', '{"8"}'),
-  ('{"-down-","-up-"}',         '{"V","U"}'),
-  ('{"-down-","-up-","-down-"}',     '{"K"}'),
-  ('{"-down-","-up-","-down-","-up-"}', '{"W"}'),
-  ('{"-down-","-up-","-down-","-right-"}', '{"W","K"}'),
-  ('{"-down-","-up-","-right-","-down-"}', '{"H"}'),
-  ('{"-left-","-down-"}',         '{"F"}'),
-  ('{"-left-","-down-","-left-"}',     '{"S"}'),
-  ('{"-left-","-down-","-left-","-down-"}', '{"E"}'),
-  ('{"-left-","-down-","-right-","-left-"}', '{"E","6"}'),
-  ('{"-left-","-right-","-down-","-left-"}', '{"S","8"}'),
-  ('{"-left-","-right-","-down-","-right-"}', '{"E"}'),
-  ('{"-left-","-right-","-left-"}',     '{"S"}'),
-  ('{"-left-","-right-","-left-","-down-"}', '{"E"}'),
-  ('{"-left-","-right-","-left-","-right-"}', '{"E"}'),
-  ('{"-left-","-down-","-right-"}',     '{"C"}'),
-  ('{"-left-","-down-","-right-","-down-"}', '{"5","8","S","E"}'),
-  ('{"-left-","-down-","-right-","-up-"}', '{"6","O","C","G","9"}'),
-  ('{"-left-","-up-","-right-","-down-"}', '{"9","8","Q"}'),
-  ('{"-right-","-left-","-down-"}',     '{"7"}'),
-  ('{"-right-","-left-","-down-","-right-"}', '{"3","2","Z"}'),
-  ('{"-right-","-left-","-right-","-left-"}', '{"3"}'),
-  ('{"-right-","-left-","-right-"}',     '{"2","Z"}'),
-  ('{"-right-","-left-","-right-","-down-"}', '{"3"}'),
-  ('{"-right-","-down-"}',         '{"7","1"}'),
-  ('{"-right-","-down-","-left-"}',     '{"7","3"}'),
-  ('{"-right-","-down-","-left-","-down-"}', '{"2","3"}'),
-  ('{"-right-","-down-","-left-","-up-"}', '{"O","2","3","U","X"}'),
-  ('{"-right-","-down-","-right-","-down-"}', '{"3"}'),
-  ('{"-right-","-down-","-right-"}',     '{"2","Z"}'),
-  ('{"-right-","-down-","-left-","-right-"}', '{"3","2","Z"}'),
-  ('{"-up-","-down-"}',         '{"1","A"}'),
-  ('{"-up-","-down-","-left-"}',     '{"A"}'),
-  ('{"-up-","-down-","-right-"}',     '{"2"}'),
-  ('{"-up-","-down-","-up-"}',     '{"N","A"}'),
-  ('{"-up-","-down-","-up-","-left-"}', '{"A"}'),
-  ('{"-up-","-down-","-up-","-down-"}', '{"M","N"}'),
-  ('{"-up-","-down-","-up-","-right-"}', '{"M","N"}'),
-  ('{"-up-","-down-","-right-","-up-"}', '{"M","N"}'),
-  ('{"-up-","-down-","-right-","-down-"}', '{"M","N"}'),
-  ('{"-up-","-right-","-up-"}',     '{"M","N"}'),
-  ('{"-up-","-right-","-up-","-down-"}', '{"M","N"}'),
-  ('{"-up-","-right-","-down-","-up-"}', '{"M","N","A"}'),
-  ('{"-up-","-left-","-down-","-right-"}', '{"8","9","C","G","S","6"}'),
-  ('{"-up-","-left-","-right-"}',     '{"T"}'),
-  ('{"-up-","-right-","-down-","-right-"}', '{"2","3","8","B","D","P","R"}'),
-  ('{"-up-","-right-","-down-","-left-"}', '{"2","3","8","B","D","P","R"}'),
-  ('{"-up-","-right-","-left-","-right-"}', '{"B"}'),
-  ('{"-up-","-right-"}',         '{"F"}');
+  ('{"▼"}',             '{"I"}'),
+  ('{"▼","◀"}',         '{"J"}'),
+  ('{"▼","◀","▲"}',     '{"O","J","X","U"}'),
+  ('{"▼","◀","▲","▶"}', '{"X","O","U"}'),
+  ('{"▼","◀","▶"}',     '{"X"}'),
+  ('{"▼","◀","▶","▲"}', '{"X"}'),
+  ('{"▼","▶"}',         '{"L"}'),
+  ('{"▼","▶","◀"}',     '{"6"}'),
+  ('{"▼","▶","◀","▼"}', '{"4"}'),
+  ('{"▼","▶","▲"}',     '{"O","U"}'),
+  ('{"▼","▶","▲","▼"}', '{"4","Y"}'),
+  ('{"▼","▶","▲","◀"}', '{"6","8","O","D","4"}'),
+  ('{"▼","▶","▲","▶"}', '{"8"}'),
+  ('{"▼","▲"}',         '{"V","U"}'),
+  ('{"▼","▲","▼"}',     '{"K"}'),
+  ('{"▼","▲","▼","▲"}', '{"W"}'),
+  ('{"▼","▲","▼","▶"}', '{"W","K"}'),
+  ('{"▼","▲","▶","▼"}', '{"H"}'),
+  ('{"◀","▼"}',         '{"F"}'),
+  ('{"◀","▼","◀"}',     '{"S"}'),
+  ('{"◀","▼","◀","▼"}', '{"E"}'),
+  ('{"◀","▼","▶","◀"}', '{"E","6"}'),
+  ('{"◀","▶","▼","◀"}', '{"S","8"}'),
+  ('{"◀","▶","▼","▶"}', '{"E"}'),
+  ('{"◀","▶","◀"}',     '{"S"}'),
+  ('{"◀","▶","◀","▼"}', '{"E"}'),
+  ('{"◀","▶","◀","▶"}', '{"E"}'),
+  ('{"◀","▼","▶"}',     '{"C"}'),
+  ('{"◀","▼","▶","▼"}', '{"5","8","S","E"}'),
+  ('{"◀","▼","▶","▲"}', '{"6","O","C","G","9"}'),
+  ('{"◀","▲","▶","▼"}', '{"9","8","Q"}'),
+  ('{"▶","◀","▼"}',     '{"7"}'),
+  ('{"▶","◀","▼","▶"}', '{"3","2","Z"}'),
+  ('{"▶","◀","▶","◀"}', '{"3"}'),
+  ('{"▶","◀","▶"}',     '{"2","Z"}'),
+  ('{"▶","◀","▶","▼"}', '{"3"}'),
+  ('{"▶","▼"}',         '{"7","1"}'),
+  ('{"▶","▼","◀"}',     '{"7","3"}'),
+  ('{"▶","▼","◀","▼"}', '{"2","3"}'),
+  ('{"▶","▼","◀","▲"}', '{"O","2","3","U","X"}'),
+  ('{"▶","▼","▶","▼"}', '{"3"}'),
+  ('{"▶","▼","▶"}',     '{"2","Z"}'),
+  ('{"▶","▼","◀","▶"}', '{"3","2","Z"}'),
+  ('{"▲"}',             '{"I"}'),
+  ('{"▲","▼"}',         '{"1","A"}'),
+  ('{"▲","▼","◀"}',     '{"A"}'),
+  ('{"▲","▼","▶"}',     '{"2"}'),
+  ('{"▲","▼","▲"}',     '{"N","A"}'),
+  ('{"▲","▼","▲","◀"}', '{"A"}'),
+  ('{"▲","▼","▲","▼"}', '{"M","N"}'),
+  ('{"▲","▼","▲","▶"}', '{"M","N"}'),
+  ('{"▲","▼","▶","▲"}', '{"M","N"}'),
+  ('{"▲","▼","▶","▼"}', '{"M","N"}'),
+  ('{"▲","▶","▲"}',     '{"M","N"}'),
+  ('{"▲","▶","▲","▼"}', '{"M","N"}'),
+  ('{"▲","▶","▼"}',     '{"D"}'),
+  ('{"▲","▶","▼","▲"}', '{"M","N","A"}'),
+  ('{"▲","◀","▼","▶"}', '{"8","9","C","G","S","6"}'),  -- HERE
+  ('{"▲","◀","▶"}',     '{"T"}'),
+  ('{"▲","▶","▼","▶"}', '{"2","3","8","B","D","P","R"}'),
+  ('{"▲","▶","▼","◀"}', '{"2","3","8","B","D","P","R"}'),
+  ('{"▲","▶","◀","▶"}', '{"B"}'),
+  ('{"▲","▶"}',         '{"F"}');
 
 -- Final lookup table: Narrows result of initial lookup down based on extracted
 -- features. Not taken from the essay implementation.
 DROP TABLE IF EXISTS lookup2;
 CREATE TABLE lookup2 (
   potential_characters char[],
-  character char,
-  start int,
-  stop int,
-  corners int[],
-  last_direction cardinal_direction,
-  aspect_range numrange
+  character            char,
+  start                int,
+  stop                 int,
+  corners              int[],
+  last_direction       cardinal_direction,
+  aspect_range         numrange
 );
-INSERT INTO lookup2  -- All single-character patterns from initial lookup table.
+INSERT INTO lookup2(potential_characters, character)
+  -- All single-character patterns from initial lookup table.
   SELECT DISTINCT ON (potential_characters[1]) potential_characters,
-                                               potential_characters[1],
-                                               NULL,
-                                               NULL,
-                                               NULL,
-                                               NULL
+                                               potential_characters[1]
   FROM   lookup1
   WHERE  array_length(potential_characters, 1) = 1;
 INSERT INTO lookup2 VALUES
@@ -229,6 +236,7 @@ INSERT INTO lookup2 VALUES
   ('{"6","O","C","G","9"}', 'O', 1, 1, NULL, NULL, NULL),
   ('{"6","O","C","G","9"}', 'O', 4, 4, NULL, NULL, NULL),
   ('{"6","O","C","G","9"}', 'O', 0, 1, NULL, NULL, NULL),
+  ('{"6","O","C","G","9"}', 'O', 1, 0, NULL, NULL, NULL),
   ('{"6","O","C","G","9"}', 'C', 0, 12, NULL, NULL, NULL),
   ('{"6","O","C","G","9"}', 'C', 0, 8, NULL, NULL, NULL),
   ('{"6","O","C","G","9"}', 'C', 4, 8, NULL, NULL, NULL),
@@ -236,9 +244,91 @@ INSERT INTO lookup2 VALUES
   ('{"6","O","C","G","9"}', 'C', 8, 12, NULL, NULL, NULL),
   ('{"6","O","C","G","9"}', 'G', 0, 9, NULL, NULL, NULL),
   ('{"6","O","C","G","9"}', 'G', 0, 5, NULL, NULL, NULL),
-  -- TODO
+  ('{"9","8","Q"}', '9', 4, 15, NULL, NULL, NULL),
+  ('{"9","8","Q"}', '9', 8, 15, NULL, NULL, NULL),
+  ('{"9","8","Q"}', '8', 4, 4, NULL, NULL, NULL),
+  ('{"9","8","Q"}', '8', 4, 8, NULL, NULL, NULL),
+  ('{"9","8","Q"}', '8', 8, 8, NULL, NULL, NULL),
+  ('{"9","8","Q"}', '8', 9, 8, NULL, NULL, NULL),
+  ('{"9","8","Q"}', '8', 9, 9, NULL, NULL, NULL),
+  ('{"9","8","Q"}', 'Q', 13, 12, NULL, NULL, NULL),
+  ('{"9","8","Q"}', 'Q', 12, 12, NULL, NULL, NULL),
+  ('{"9","8","Q"}', 'Q', 14, 12, NULL, NULL, NULL),
+  ('{"9","8","Q"}', 'Q', 14, 13, NULL, NULL, NULL),
+  ('{"3","2","Z"}', '3', 3, 15, NULL, NULL, NULL),
+  ('{"3","2","Z"}', '3', 3, 14, NULL, NULL, NULL),
+  ('{"3","2","Z"}', '2', 3, 12, '{15}', NULL, NULL),
+  ('{"3","2","Z"}', '2', 3, 12, '{14}', NULL, NULL),
+  ('{"3","2","Z"}', '2', 3, 13, '{15}', NULL, NULL),
+  ('{"3","2","Z"}', '2', 3, 13, '{14}', NULL, NULL),
+  ('{"3","2","Z"}', '2', 2, 12, '{15}', NULL, NULL),
+  ('{"3","2","Z"}', '2', 2, 12, '{14}', NULL, NULL),
+  ('{"3","2","Z"}', '2', 2, 13, '{15}', NULL, NULL),
+  ('{"3","2","Z"}', '2', 2, 13, '{14}', NULL, NULL),
+  ('{"3","2","Z"}', '2', 3, 12, '{15,14}', NULL, NULL),
+  ('{"3","2","Z"}', '2', 3, 13, '{15,14}', NULL, NULL),
+  ('{"3","2","Z"}', '2', 2, 12, '{15,14}', NULL, NULL),
+  ('{"3","2","Z"}', '2', 2, 13, '{15,14}', NULL, NULL),
+  ('{"3","2","Z"}', 'Z', NULL, NULL, '{0,15}', NULL, NULL),
+  ('{"3","2","Z"}', 'Z', NULL, NULL, '{1,15}', NULL, NULL),
+  ('{"3","2","Z"}', 'Z', NULL, NULL, '{0,14}', NULL, NULL),
+  ('{"3","2","Z"}', 'Z', NULL, NULL, '{1,14}', NULL, NULL),
+  ('{"3","2","Z"}', 'Z', NULL, NULL, '{1,14,13}', NULL, NULL),
+  ('{"3","2","Z"}', 'Z', NULL, NULL, '{0,5,15}', NULL, NULL),
+  ('{"2","Z"}', '2', NULL, NULL, '{14}', NULL, NULL),
+  ('{"2","Z"}', '2', NULL, NULL, '{15}', NULL, NULL),
+  ('{"2","Z"}', '2', NULL, NULL, '{15,14}', NULL, NULL),
+  ('{"2","Z"}', 'Z', NULL, NULL, '{0,15}', NULL, NULL),
+  ('{"2","Z"}', 'Z', NULL, NULL, '{1,15}', NULL, NULL),
+  ('{"2","Z"}', 'Z', NULL, NULL, '{0,14}', NULL, NULL),
+  ('{"2","Z"}', 'Z', NULL, NULL, '{1,14}', NULL, NULL),
+  ('{"2","Z"}', 'Z', NULL, NULL, '{1,14,13}', NULL, NULL),
+  ('{"2","Z"}', 'Z', NULL, NULL, '{0,5,15}', NULL, NULL),
+  ('{"7","1"}', '7', NULL, NULL, NULL, NULL, numrange(0,1.8)),
+  ('{"7","1"}', '1', NULL, NULL, NULL, NULL, numrange(1.8,1000)),
+  ('{"7","3"}', '7', NULL, NULL, '{0}', NULL, NULL),
+  ('{"7","3"}', '7', NULL, NULL, '{4}', NULL, NULL),
+  ('{"7","3"}', '3', NULL, NULL, '{}', NULL, NULL),
+  ('{"2","3"}', '2', NULL, 12, NULL, NULL, NULL),
+  ('{"2","3"}', '2', NULL, 13, NULL, NULL, NULL),
+  ('{"2","3"}', '3', NULL, 14, NULL, NULL, NULL),
+  ('{"2","3"}', '3', NULL, 15, NULL, NULL, NULL),
+  ('{"O","2","3","U","X"}', 'O', 3, 3, NULL, NULL, NULL),
+  ('{"O","2","3","U","X"}', 'O', 2, 2, NULL, NULL, NULL),
+  ('{"O","2","3","U","X"}', 'O', 1, 1, NULL, NULL, NULL),
+  ('{"O","2","3","U","X"}', '2', NULL, NULL, '{14}', NULL, NULL),
+  ('{"O","2","3","U","X"}', '2', NULL, NULL, '{15}', NULL, NULL),
+  ('{"O","2","3","U","X"}', '3', 3, 15, NULL, NULL, NULL),
+  ('{"O","2","3","U","X"}', '3', 3, 14, NULL, NULL, NULL),
+  ('{"O","2","3","U","X"}', 'U', 0, 3, '{}', NULL, NULL),
+  ('{"O","2","3","U","X"}', 'X', 0, 3, '{12,15}', NULL, NULL),
+  ('{"O","2","3","U","X"}', 'X', 0, 3, '{12}', NULL, NULL),
+  ('{"O","2","3","U","X"}', 'X', 0, 3, '{15}', NULL, NULL),
+  ('{"1","A"}', '1', NULL, NULL, NULL, NULL, numrange(1.6,1000)),
+  ('{"1","A"}', 'A', NULL, NULL, NULL, NULL, numrange(0,1.6)),
+  ('{"N","A"}', 'N', NULL, 0, NULL, NULL, NULL),
+  ('{"N","A"}', 'N', NULL, 1, NULL, NULL, NULL),
+  ('{"N","A"}', 'N', NULL, 4, NULL, NULL, NULL),
+  ('{"N","A"}', 'A', NULL, 10, NULL, NULL, NULL),
+  ('{"N","A"}', 'A', NULL, 11, NULL, NULL, NULL),
+  ('{"N","A"}', 'A', NULL, 6, NULL, NULL, NULL),
+  ('{"N","A"}', 'A', NULL, 7, NULL, NULL, NULL),
+  ('{"N","A"}', 'A', NULL, 9, NULL, NULL, NULL),
   ('{"M","N"}', 'M', NULL, 12, NULL, NULL, NULL),
-  ('{"M","N"}', 'N', NULL, 0, NULL, NULL, NULL);
+  ('{"M","N"}', 'N', NULL, 0, NULL, NULL, NULL),
+  ('{"M","N"}', 'N', NULL, 1, NULL, NULL, NULL),
+  ('{"M","N","A"}', 'M', NULL, 12, NULL, NULL, NULL),
+  ('{"M","N","A"}', 'N', NULL, 0, NULL, NULL, NULL),
+  ('{"M","N","A"}', 'N', NULL, 1, NULL, NULL, NULL),
+  ('{"M","N","A"}', 'A', NULL, 10, NULL, NULL, NULL),
+  ('{"M","N","A"}', 'A', NULL, 6, NULL, NULL, NULL),
+  ('{"M","N","A"}', 'A', NULL, 7, NULL, NULL, NULL),
+  ('{"M","N","A"}', 'A', NULL, 9, NULL, NULL, NULL),
+
+
+
+
+  ('{}', 'N', NULL, 0, NULL, NULL, NULL),
 
 ---------------------------------------------------------------
 -- ONE QUERY TO RULE THEM ALL, ONE QUERY TO FIND THEM, --------
@@ -257,7 +347,7 @@ tablet(pos, x, y) AS (
   FROM   ROWS FROM(jsonb_to_recordset(:'pen') AS (x int, y int)) WITH ORDINALITY
 ),
 smooth(pos, x, y) AS (
-  -- Smooth pen stroke to remove quantization jitter. Return doubles because the
+  -- Smooth pen stroke to remove quantization jitter. Return reals because the
   -- more idiomatic numeric type will feature unnecessarily many decimal places
   -- after a few iterations.
   SELECT pos, x :: real, y :: real
@@ -288,7 +378,9 @@ thin(pos, x, y) AS (
     FROM   thin t, smooth s
     WHERE  s.pos > t.pos
     AND    :thinningsize < |/ (s.x - t.x)^2 + (s.y - t.y)^2
-    --AND    (abs(s.x - t.x) >= :thinningsize OR abs(s.y - t.y) >= :thinningsize)  -- Alternative, closer to the original specification, but "incorrect".
+    -- Alternative, closer to the original specification, but less ideal: square
+    -- instead of circle, pruning too many points for diagonal strokes.
+    --AND    (abs(s.x - t.x) >= :thinningsize OR abs(s.y - t.y) >= :thinningsize)
     ORDER BY s.pos
     LIMIT 1
   ) AS _
@@ -314,14 +406,14 @@ cardinal(pos, direction) AS (
   -- years' worth of Moore's law between the algorithm's conception and the time
   -- of this implementation.
   SELECT pos,
-         (enum_range(NULL :: cardinal_direction))[(direction / 90) :: int % 4 + 1]  -- TODO make note of this, change hysteris zones thing accordingly
+         (enum_range(NULL :: cardinal_direction))[(direction / 90) :: int % 4 + 1]
   FROM   curve
 ),
 --cardinal_hysteresis(pos, actual_direction, direction) AS (
 --  -- Same as above, but featuring so-called hysteresis zones with a width of 8
 --  -- degrees which keep the emitted cardinal direction from switching around
---  -- between two values for an around-45-degree stroke.
---  SELECT pos, direction, (enum_range(NULL :: cardinal_direction))[(direction / 90) :: int]
+--  -- between two values for an around-45-degree stroke. Outdated.
+--  SELECT pos, direction, (enum_range(NULL :: cardinal_direction))[(direction / 90) :: int % 4 + 1]
 --  FROM   curve
 --  WHERE  pos = 1
 --
@@ -339,7 +431,7 @@ cardinal(pos, direction) AS (
 --                WHEN abs(c.direction - c42.actual_direction) < 8
 --                THEN c42.actual_direction
 --                ELSE c.direction
---              END) / 90) :: int]
+--              END) / 90) :: int % 4 + 1]
 --     FROM   curve c, cardinal_hysteresis c42
 --     WHERE  c.pos > c42.pos
 --     ORDER BY c.pos
@@ -363,29 +455,24 @@ corner(pos, x, y) AS (
   -- between "turn" segment with an arbitrary direction.
   SELECT pos, x, y
   FROM   (SELECT pos, x, y, (
-                   abs(lag(direction) OVER win - lag(direction, 2) OVER win) <= 1
-                   AND abs(lead(direction) OVER win - lead(direction, 2) OVER win) <= 1
-                   AND abs(lag(direction) OVER win - lead(direction) OVER win)  -- TODO fix for cases where going from 14 to 1, for instance
-                       > :cornerangle / 22.5
-                   AND abs(lag(direction) OVER win - lead(direction) OVER win)
-                       < (16 - :cornerangle / 22.5)
+                   angdiff(lag(direction) OVER win, lag(direction, 2) OVER win) <= 22.5
+                   AND angdiff(lead(direction) OVER win, lead(direction, 2) OVER win) <= 22.5
+                   AND angdiff(lag(direction) OVER win, lead(direction) OVER win)
+                       > :cornerangle
                  ) OR (  -- One-segment turn OR immediate direction change.
-                   abs(direction - lag(direction) OVER win) <= 1
-                   AND abs(lead(direction) OVER win - lead(direction, 2) OVER win) <= 1
-                   AND abs(direction - lead(direction) OVER win)
-                       > :cornerangle / 22.5
-                   AND abs(direction - lead(direction) OVER win)
-                       < (16 - :cornerangle / 22.5)
+                   angdiff(direction, lag(direction) OVER win) <= 22.5
+                   AND angdiff(lead(direction) OVER win, lead(direction, 2) OVER win) <= 22.5
+                   AND angdiff(direction, lead(direction) OVER win)
+                       > :cornerangle
                  ) AS is_corner
-          FROM   (SELECT pos, x, y, (direction / 22.5) :: int % 16 AS direction  -- TODO make note of this, change hysteris zones thing accordingly
-                  FROM curve) AS _
+          FROM   curve
           WINDOW win AS (ORDER BY pos)) AS _(pos, x, y, is_corner)
   WHERE  is_corner
 ),
 --corner_hysteresis(pos, x, y, corner) AS (
 --  -- Same as above, but utilizing a different approach and allowing slight
 --  -- differences in the directions of each pair of pre- and post-corner
---  -- segments.
+--  -- segments. Outdated.
 --  SELECT pos,
 --         x,
 --         y,
@@ -427,8 +514,13 @@ stop_grid(n) AS (
   LIMIT 1
 ),
 corner_grid(pos, n) AS (
-  -- Corners as areas on a 4x4 grid.
-  SELECT c.pos, gridpos(a.width, a.height, a.xmin, a.ymin, c.x, c.y)
+  -- Corners as areas on a 4x4 grid. Use DISTINCT to get rid of sequential
+  -- duplicates that arise due to the two OR'd corner conditions (one-segment
+  -- turn OR immediate direction change). This also gets rid of non-sequential
+  -- duplicates, but that didn't turn out to be an issue, so I saw no need to
+  -- implement a conceptually-cleaner-but-more-verbose approach.
+  SELECT DISTINCT ON (gridpos)
+         c.pos, gridpos(a.width, a.height, a.xmin, a.ymin, c.x, c.y)
   FROM   corner c, aabb a
 ),
 features(directions, start, stop, corners, width, height, aspect, center) AS (
@@ -447,14 +539,15 @@ features(directions, start, stop, corners, width, height, aspect, center) AS (
          point(centerx, centery)
   FROM   aabb a
 ),
-potential_characters(potential_characters) AS (
-  -- TODO nice result formatting ("i think you mean S, however it could also be 5, etc.")
-  -- TODO maybe just lookup table with all the features (maybe upper/lower bounds for some of them, also need NULL or something for don't care), then last col => char. if nothing found, not recognized
+potential_characters(potential_characters) AS (  -- TODO rename to "candidates"?
+  -- Consult first lookup table, yielding one or more potential character
+  -- matching the first four cardinal directions of the pen stroke.
   SELECT potential_characters
   FROM   features, lookup1
   WHERE  directions[1:4] = first_four_directions
 ),
 character(character) AS (
+  -- Narrow list of potential characters down to just one.
   SELECT character
   FROM   features f, potential_characters p, lookup2 l
   WHERE  p.potential_characters = l.potential_characters  -- TODO explicit JOIN? rename things?
@@ -464,10 +557,32 @@ character(character) AS (
   AND    COALESCE(f.directions[array_length(f.directions, 1)] = l.last_direction, true)
   AND    COALESCE(l.aspect_range @> f.aspect :: numeric, true)
 ),
-prettyprint(output) AS (
-  SELECT 'Based on the first four cardinal directions of your stroke, I was able to narrow the potential characters down to ' || potential_characters :: text || ', and based on the remaining extracted features, I think it is ' || character || '. How did I do?'
-  FROM   potential_characters, character
+debug(output) AS (
+  -- Ugh, figuring out how to properly add double quotes around array elements
+  -- in the tuple output took ages.
+  SELECT (TABLE potential_characters) AS potential_characters,
+         (SELECT array_agg(character) FROM character) AS character,  -- TODO remove array_agg
+         *,
+         '(''{' || (SELECT string_agg(quote_ident(unnest :: text), ',' ORDER BY ordinality)
+                    FROM potential_characters, unnest(potential_characters) WITH ORDINALITY)
+                || '}'', '''
+                || COALESCE((SELECT character FROM character), '?') :: text
+                || ''', '
+                || start
+                || ', '
+                || stop
+                || ', '
+                || ''''
+                || corners :: text
+                || ''', '''
+                || directions[array_length(directions, 1)]
+                || ''', numrange('
+                || aspect
+                || ','
+                || aspect
+                || '))'   AS tuple
+  FROM features
 )
-SELECT * FROM corner;
---SELECT (SELECT * FROM potential_characters), (SELECT array_agg(character) FROM character), *
---FROM features;
+TABLE debug;
+
+-- Here be dragons.

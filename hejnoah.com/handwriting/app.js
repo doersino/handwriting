@@ -45,7 +45,8 @@ var performquery = function(s) {
             query = d3.select("#query");
             query.selectAll("span").remove();
             query.append("span").attr("class", "query").text(xmlhttp.responseText);
-            clearInterval(loader);
+            logtuple(xmlhttp.responseText);
+            //clearInterval(loader);
             // TODO draw characteristics into d3 graph? might be tricky because of scaling
         }
     }
@@ -53,6 +54,17 @@ var performquery = function(s) {
     xmlhttp.open("POST", "backend.py", true);
     xmlhttp.setRequestHeader("Content-type","application/x-www-form-urlencoded");
     xmlhttp.send("pen=" + s);
+};
+
+var logtuple = function(response) {
+    tuple = response.split(/\r?\n/).filter(a => a.startsWith("|"))[1].split("|")[11].trim();
+
+    if (tuple != "") {
+        tuples = d3.select("#tuples");
+        tuples.style("display", "block");
+        tuples.insert("span", "br:first-child").attr("class", "tuple").text(tuple + ",");
+        tuples.insert("br", "span:first-child");
+    }
 };
 
 var stroke = [];
