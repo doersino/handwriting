@@ -1,8 +1,8 @@
 @font-face {
     font-family: 'Iosevka';
-    src: url('iosevka-regular.woff2') format('woff2'),
-         url('iosevka-regular.woff') format('woff'),
-         url('iosevka-regular.ttf') format('truetype');
+    src: url('assets/iosevka-regular.woff2') format('woff2'),
+         url('assets/iosevka-regular.woff') format('woff'),
+         url('assets/iosevka-regular.ttf') format('truetype');
 }
 
 * {
@@ -12,7 +12,7 @@
 
 body {
     background-color: black;
-    font-family: "Iosevka";
+    font-family: 'Iosevka';
     color: white;
     margin-bottom: 1.5rem;
 }
@@ -42,8 +42,10 @@ circle {
 }
 
 section {
-    margin: 1.5rem !important;
+    margin: 1.5rem 0rem 1.5rem 1.5rem !important;
+    padding-right: 1.5rem;
     line-height: 1.3rem;
+    overflow-x: scroll;
 }
 
 #dump, #query, #tuples {

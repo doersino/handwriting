@@ -51,7 +51,7 @@ var performquery = function(s) {
         }
     }
 
-    xmlhttp.open("POST", "backend.py", true);
+    xmlhttp.open("POST", "backend/backend.py", true);
     xmlhttp.setRequestHeader("Content-type","application/x-www-form-urlencoded");
     xmlhttp.send("pen=" + s);
 };
@@ -92,7 +92,6 @@ function mousedown() {
     canvas.on("mousemove", mousemove);
 }
 
-// TODO remove redundancy
 function mousemove() {
     var m = d3.mouse(this);
     var p = {x:Math.trunc(m[0]), y:Math.trunc(m[1])};

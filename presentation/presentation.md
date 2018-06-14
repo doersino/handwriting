@@ -4,7 +4,7 @@ slidenumbers: true
 
 ^ ---
 
-![filtered](tablet_small.png)
+![filtered](tablet.jpg)
 
 ### **SQL is a Programming Language, Summer 2018**<br><br>
 
@@ -38,7 +38,7 @@ In the early 60s, keyboard proficiency was less widespread, so other input metho
 
 ---
 
-![autoplay](video_letterboxed.mp4)
+![autoplay](alankay_letterboxed.mp4)
 
 ---
 
@@ -46,15 +46,15 @@ In the early 60s, keyboard proficiency was less widespread, so other input metho
 
 [Slight modifications to some characters to make this work.]()
 
-![original](Screen Shot 2018-05-26 at 17.14.15.png)
+![original](drawingguide.png)
 
 ---
 
 ^ The RAND tablet was $18K, which is slightly above my pay grade
 
-^ mention origin in bottom left, not top left as is standard in computer graphics
+^ origin in bottom left, not top left as is standard in computer graphics
 
-![original](Nexus-5.png)
+![original](nexus5.jpg)
 
 Simple D3.js-based web version, connected
 to a PostgreSQL instance running on my
@@ -86,7 +86,7 @@ tablet(pos, x, y) AS (
 
 ---
 
-![](Screen Shot 2018-05-26 at 20.25.07.png)
+![original](approach.png)
 
 ## Approach[^2]
 
@@ -96,17 +96,17 @@ tablet(pos, x, y) AS (
 4. Descending a hardcoded *decision
    tree* mapping features to characters
 
-[^2]: `https://www.rand.org/pubs/research_memoranda/RM5016.html`
+[^2]: `https://www.rand.org/pubs/research_memoranda/RM5016.html`, `http://jackschaedler.github.io/handwriting-recognition/`
 
 ---
 
-**Smoothing:** Removes *quantization noise*. Compute weighted average of most recently smoothed point and incoming point.
+[**Smoothing:** Removes *quantization noise*. Compute weighted average of most recently smoothed point and incoming point.]()
 
-# TODO video
+![](smoothing.mp4)
 
 ---
 
-Variable `smoothingfactor` must be set before running the query. Sensible values: between 0.5 and 0.8.
+Variable `smoothingfactor` must be set before running the query. Sensible values: between `0.5` and `0.8`.
 
 ```sql
 smooth(pos, x, y) AS (
@@ -126,7 +126,7 @@ smooth(pos, x, y) AS (
 
 ---
 
-Variable `smoothingfactor` must be set before running the query. Sensible values: between 0.5 and 0.8.
+Variable `smoothingfactor` must be set before running the query. Sensible values: between `0.5` and `0.8`.
 
 ```sql, [.highlight: 2-4]
 smooth(pos, x, y) AS (
@@ -146,7 +146,7 @@ smooth(pos, x, y) AS (
 
 ---
 
-Variable `smoothingfactor` must be set before running the query. Sensible values: between 0.5 and 0.8.
+Variable `smoothingfactor` must be set before running the query. Sensible values: between `0.5` and `0.8`.
 
 ```sql, [.highlight: 8-12]
 smooth(pos, x, y) AS (
@@ -166,9 +166,9 @@ smooth(pos, x, y) AS (
 
 ---
 
-**Thinning:** Eases further *processing requirements*. Reject points within a certain distance from the most recent accepted point.
+[**Thinning:** Eases further *processing requirements*. Reject points within a certain distance from the most recent accepted point.]()
 
-# TODO video
+![](thinning.mp4)
 
 ---
 
@@ -194,7 +194,29 @@ thin(pos, x, y) AS (
 
 ---
 
-```sql, [.highlight: 10-15]
+```sql, [.highlight: 11-12,14-15]
+thin(pos, x, y) AS (
+  SELECT *
+  FROM   smooth
+  WHERE  pos = 1
+
+    UNION ALL
+
+  SELECT *
+  FROM   (
+    SELECT s.pos, s.x, s.y
+    FROM   thin t, smooth s
+    WHERE  s.pos > t.pos
+    AND    :thinningsize < |/ (s.x - t.x)^2 + (s.y - t.y)^2                     
+    ORDER BY s.pos
+    LIMIT 1
+  ) AS _
+),
+```
+
+---
+
+```sql, [.highlight: 13]
 thin(pos, x, y) AS (
   SELECT *
   FROM   smooth
@@ -240,15 +262,18 @@ thin(pos, x, y) AS (
 
 ---
 
-**Curvature detection:** Compute *cardinal directions* ▲▼◀▶ of line segments between point pairs. Discard sequential duplicates.
+[**Curvature detection:** Compute *cardinal directions* ▲▼◀▶ of line segments between point pairs. Discard sequential duplicates.]()
 
-Originally done using a set of inequalities, but on modern hardware some trigonometry is less of a performance issue:<br>
- 
-$$\text{Let } p_1 = (x_1, y_1) \text{ and } p_2 = (x_2, y_2).$$
-$$\text{Construct a right triangle with hypo-}$$
-$$\text{tenuse } \overline{p_1p_2} \text{ and the two axes as legs.}$$
-$$\text{The direction of the line } \overline{p_1p_2} \text{ then is}$$
-$$\phantom{j^{j^{j^{j^{j^I}}}}}\alpha = \pi + \tan^{-1}\left(\frac{y_2 - y_1}{x_1 - x_2}\right).$$
+<br>
+
+[Originally done using a set of]()
+[*inequalities*, but *trigonometry* is]()
+[more elegant and reasonably]()
+[fast on modern hardware.]()
+
+[Recall: $$tangent = \frac{opposite\,\,leg}{adjacent\,\,leg}$$]()
+
+![](curvature.mp4)
 
 ---
 
@@ -290,6 +315,23 @@ cardinal(pos, direction) AS (
 ```sql
 cardinal_change(pos, direction) AS (
   SELECT pos, direction
+  FROM   cardinal
+  WHERE  COALESCE(lag(direction, 2) OVER win <> lag(direction) OVER win,        
+                  true)  -- Prevent NULLs from escaping this term.
+  AND    lag(direction) OVER win = direction
+  WINDOW win AS (ORDER BY pos)
+),
+```
+
+---
+
+^ Window functions are permitted only in the SELECT list and the ORDER BY clause of the query. They are forbidden elsewhere, such as in GROUP BY, HAVING and WHERE clauses. This is because they logically execute after the processing of those clauses.
+
+...except this doesn't work because window functions cannot be used in `WHERE` clauses. Resort to an awkward subquery.
+
+```sql
+cardinal_change(pos, direction) AS (
+  SELECT pos, direction
   FROM   (SELECT pos, direction,
                  COALESCE(lag(direction, 2) OVER win <> lag(direction) OVER win,
                           true)  -- Prevent NULLs from escaping this term.
@@ -300,37 +342,120 @@ cardinal_change(pos, direction) AS (
 ),
 ```
 
-Awkward because window functions are illegal in `WHERE` clauses.
-
 ---
 
-**Corner detection:** Allows discerning between *similar characters*.
 
-# TODO drawing/video, maybe four examples U V 5 S in essay style
+
+[**Corner detection:** Allows discerning between *similar characters*.]()
+
+![original](corners.png)
 
 <br>
+<br>
+<br>
 
-Corners lie between two line segments going in the same direction and two segments going in a wildly different direction, with an optional in-between "turn" segment.
+[Corners lie between two line segments going in the same direction and two segments going in a wildly different direction, with an optional in-between "turn" segment.]()
 
 
 ---
 
+**1.** Define function that computes angle difference.
+
 ```sql
-corner(pos, x, y, corner) AS (
+CREATE OR REPLACE FUNCTION angdiff(alpha real,
+                                   beta real) RETURNS real AS $$
+BEGIN
+  RETURN abs(degrees(atan2(sin(radians(alpha - beta)),
+                           cos(radians(alpha - beta))))) :: real;               
+END
+$$ LANGUAGE plpgsql;
+```
+
+Trivial for angle pairs like 10° and 20°, but less so for 350° and 30°.
+
+---
+
+**2.** Detect corners with the help of another awkward subquery.
+
+```sql
+corner(pos, x, y) AS (
   SELECT pos, x, y
   FROM   (SELECT pos, x, y, (
-                   lag(direction) OVER win = lag(direction, 2) OVER win
-                   AND lead(direction) OVER win = lead(direction, 2) OVER win
-                   AND abs(lag(direction) OVER win - lead(direction) OVER win)
-                       > :cornerangle / 16
-                 ) OR (  -- One-segment turn OR immediate direction change.
-                   direction = lag(direction) OVER win
-                   AND lead(direction) OVER win = lead(direction, 2) OVER win
-                   AND abs(direction - lead(direction) OVER win)
-                       > :cornerangle / 16
+                   angdiff(lag(direction) OVER win, direction) < 22.5
+                   AND angdiff(direction, lead(direction) OVER win) > :cornerangle
+                   AND angdiff(lead(direction) OVER win, lead(direction, 2) OVER win) < 22.5
+                 ) OR (  -- Immediate direction change OR one-segment turn.
+                   angdiff(lag(direction, 2) OVER win, lag(direction) OVER win) < 22.5
+                   AND angdiff(lag(direction) OVER win, lead(direction) OVER win) > :cornerangle
+                   AND angdiff(lead(direction) OVER win, lead(direction, 2) OVER win) < 22.5
                  ) AS is_corner
-          FROM   (SELECT pos, x, y, (direction / 22.5) :: int AS direction
-                  FROM curve) AS _
+          FROM   curve
+          WINDOW win AS (ORDER BY pos)) AS _(pos, x, y, is_corner)
+  WHERE  is_corner
+),
+```
+
+---
+
+**2.** Detect corners with the help of another awkward subquery.
+
+```sql, [.highlight: 12]
+corner(pos, x, y) AS (
+  SELECT pos, x, y
+  FROM   (SELECT pos, x, y, (
+                   angdiff(lag(direction) OVER win, direction) < 22.5
+                   AND angdiff(direction, lead(direction) OVER win) > :cornerangle
+                   AND angdiff(lead(direction) OVER win, lead(direction, 2) OVER win) < 22.5
+                 ) OR (  -- Immediate direction change OR one-segment turn.
+                   angdiff(lag(direction, 2) OVER win, lag(direction) OVER win) < 22.5
+                   AND angdiff(lag(direction) OVER win, lead(direction) OVER win) > :cornerangle
+                   AND angdiff(lead(direction) OVER win, lead(direction, 2) OVER win) < 22.5
+                 ) AS is_corner
+          FROM   curve
+          WINDOW win AS (ORDER BY pos)) AS _(pos, x, y, is_corner)
+  WHERE  is_corner
+),
+```
+
+---
+
+**2.** Detect corners with the help of another awkward subquery.
+
+```sql, [.highlight: 4-6]
+corner(pos, x, y) AS (
+  SELECT pos, x, y
+  FROM   (SELECT pos, x, y, (
+                   angdiff(lag(direction) OVER win, direction) < 22.5
+                   AND angdiff(direction, lead(direction) OVER win) > :cornerangle
+                   AND angdiff(lead(direction) OVER win, lead(direction, 2) OVER win) < 22.5
+                 ) OR (  -- Immediate direction change OR one-segment turn.
+                   angdiff(lag(direction, 2) OVER win, lag(direction) OVER win) < 22.5
+                   AND angdiff(lag(direction) OVER win, lead(direction) OVER win) > :cornerangle
+                   AND angdiff(lead(direction) OVER win, lead(direction, 2) OVER win) < 22.5
+                 ) AS is_corner
+          FROM   curve
+          WINDOW win AS (ORDER BY pos)) AS _(pos, x, y, is_corner)
+  WHERE  is_corner
+),
+```
+
+---
+
+**2.** Detect corners with the help of another awkward subquery.
+
+```sql, [.highlight: 8-10]
+corner(pos, x, y) AS (
+  SELECT pos, x, y
+  FROM   (SELECT pos, x, y, (
+                   angdiff(lag(direction) OVER win, direction) < 22.5
+                   AND angdiff(direction, lead(direction) OVER win) > :cornerangle
+                   AND angdiff(lead(direction) OVER win, lead(direction, 2) OVER win) < 22.5
+                 ) OR (  -- Immediate direction change OR one-segment turn.
+                   angdiff(lag(direction, 2) OVER win, lag(direction) OVER win) < 22.5
+                   AND angdiff(lag(direction) OVER win, lead(direction) OVER win) > :cornerangle
+                   AND angdiff(lead(direction) OVER win, lead(direction, 2) OVER win) < 22.5
+                 ) AS is_corner
+          FROM   curve
           WINDOW win AS (ORDER BY pos)) AS _(pos, x, y, is_corner)
   WHERE  is_corner
 ),
@@ -342,7 +467,7 @@ corner(pos, x, y, corner) AS (
 
 [Transform from absolute pixel positions to 4x4 grid segments.]()
 
-![original](Screen Shot 2018-05-25 at 22.33.37.png)
+![original](grid.png)
 
 ---
 
@@ -373,8 +498,8 @@ CREATE OR REPLACE FUNCTION gridpos(width real, height real,
                                    x real, y real) RETURNS int AS $$
 BEGIN
   RETURN greatest(0,
-                  15 - (      (floor(4 * (x-xmin)/(width + 1)) :: int)
-                        + 4 * (floor(4 * (y-ymin)/(height + 1)) :: int)));      
+                  15 - (      (floor(4 * (x - xmin) / (width  + 1)) :: int)
+                        + 4 * (floor(4 * (y - ymin) / (height + 1)) :: int)));  
 END
 $$ LANGUAGE plpgsql;
 ```
@@ -384,8 +509,6 @@ $$ LANGUAGE plpgsql;
 ---
 
 **4.** Collect extracted features. This single-row table contains all information required to identify the drawn character.
-
-# TODO example result
 
 ```sql
 features(center, start, stop, directions, corners, width, height, aspect) AS (  
@@ -416,12 +539,12 @@ Imagine 1000+ lines of deeply nested and probably buggy `CASE WHEN`s.
 
 A better approach is to do this in *two discrete stages*:
 
-1. Determine potential characters based on the pen stroke's *first four cardinal directions*.
-2. Consult *lookup table*: mapping from set of characters to best fit based on selected features.
+1. Determine **candidate characters** based on the pen stroke's *first four cardinal directions*.
+2. Settle on **best fit** by matching *selected stroke features*.
 
 Less flexible than the procedure presented in the original memo, but significantly more *idiomatic* and concise.
 
-TODO point out that focus was on feature extraction, not mapping to characters because that's boring
+^ point out that focus was on feature extraction, not mapping to characters because that's boring
 
 ---
 
@@ -430,7 +553,7 @@ TODO point out that focus was on feature extraction, not mapping to characters b
 ```sql
 CREATE TABLE lookup1 (
   first_four_directions cardinal_direction[],                                   
-  potential_characters  char[]
+  candidate_characters  char[]
 );
 INSERT INTO lookup1 VALUES
   ('{"▼"}',             '{"I"}'),
@@ -451,52 +574,58 @@ INSERT INTO lookup1 VALUES
 
 ```sql
 CREATE TABLE lookup2 (
-  potential_characters char[],
+  candidate_characters char[],
   character            char,
   start                int,
   stop                 int,
   corners              int[],
-  last_direction       cardinal_direction,
   aspect_range         numrange
 );
 INSERT INTO lookup2  -- All single-character patterns from initial lookup table.
   ...
 INSERT INTO lookup2 VALUES
-  ('{"M","N"}', 'M', NULL, 12, NULL, NULL, NULL),  -- Stop point bottom right.
-  ('{"M","N"}', 'N', NULL, 0, NULL, NULL, NULL),   -- Stop point top right.
+  ('{"M","N"}', 'M', NULL, 12, NULL, NULL),  -- End point bottom right.
+  ('{"M","N"}', 'N', NULL, 0,  NULL, NULL),  -- End point top right.
   ...
 ```
 
 ---
 
-**3.** Tie them together. TODO update probably
+**3.** Consult *both* lookup tables in order.
 
 ```sql
-potential_characters(characters) AS (
-  SELECT potential_characters
+candidate_characters(candidate_characters) AS (
+  SELECT candidate_characters
   FROM   features, lookup1
   WHERE  directions[1:4] = first_four_directions
 ),
 character(character) AS (
   SELECT character
-  FROM   features f, potential_characters p, lookup2 l
-  WHERE  p.characters = l.potential_characters
-  AND    COALESCE(f.start = l.start, true)
-  AND    COALESCE(f.stop = l.stop, true)
-  AND    COALESCE(f.corners = l.corners, true)
-  AND    COALESCE(l.aspect_range @> f.aspect :: numeric, true)                  
+  FROM   features f, candidate_characters p, lookup2 l
+  WHERE  p.candidate_characters = l.candidate_characters
+  AND    (l.start IS NULL        OR f.start = l.start)
+  AND    (l.stop IS NULL         OR f.stop = l.stop)
+  AND    (l.corners IS NULL      OR f.corners = l.corners)
+  AND    (l.aspect_range IS NULL OR l.aspect_range @> f.aspect :: numeric)                 
 ),
 ```
 
 ---
 
-# TODO video of scrolling down the code
-.
+**4.** And we're done!
 
----
+```sql
+prettyprint AS (
+  SELECT candidate_characters, COALESCE(character, '?') AS character            
+  FROM candidate_characters, character
+)
+TABLE prettyprint;
+```
 
-^ Most steps of the algorithm run in O(n).
-^ Query runtimes are in the low double digits (ms).
+<br>
+
+**Performance:** Most algorithms designed in the 60's will run on modern hardware *just fine* – this one is no exception: The `WITH` clause terminates after around 15 ms.
+**SQL is, *after all*, a programming language.**
 
 ![](plan.png)
 
@@ -504,4 +633,4 @@ character(character) AS (
 
 # *Demo*
 
-![filtered](tablet_small.png)
+![filtered](tablet.jpg)
