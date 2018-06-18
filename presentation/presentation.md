@@ -66,7 +66,7 @@ server. **Try it on your phones:**
 
 ---
 
-The web version yields a *JSON array of coordinate pairs*. In order to transfer this into a ![inline](pglogo.png) database...
+It yields a JSON-encoded *time series of coordinate pairs*. In order to transfer this into a ![inline](pglogo.png) database...
 
 **1.** Define variable `pen` via command-line parameter.
 
@@ -362,16 +362,16 @@ cardinal_change(pos, direction) AS (
 **1.** Define function that computes angle difference.
 
 ```sql
-CREATE OR REPLACE FUNCTION angdiff(alpha real,
-                                   beta real) RETURNS real AS $$
-BEGIN
-  RETURN abs(degrees(atan2(sin(radians(alpha - beta)),
-                           cos(radians(alpha - beta))))) :: real;               
-END
-$$ LANGUAGE plpgsql;
+CREATE OR REPLACE FUNCTION angdiff(alpha double precision,
+                                   beta double precision) RETURNS real AS $$
+  SELECT abs(degrees(atan2(sin(radians(alpha - beta)),
+                           cos(radians(alpha - beta))))) :: real;
+$$ LANGUAGE SQL IMMUTABLE;
 ```
 
 Trivial for angle pairs like 10° and 20°, but less so for 350° and 30°.
+
+TODO talk about: why not % (because it can yield negative numbers)? or rewrite with a abs before mod?
 
 ---
 
@@ -496,12 +496,10 @@ aabb(xmin, xmax, ymin, ymax, aspect, width, height, centerx, centery) AS (
 CREATE OR REPLACE FUNCTION gridpos(width real, height real,
                                    xmin real, ymin real,
                                    x real, y real) RETURNS int AS $$
-BEGIN
-  RETURN greatest(0,
+  SELECT greatest(0,
                   15 - (      (floor(4 * (x - xmin) / (width  + 1)) :: int)
-                        + 4 * (floor(4 * (y - ymin) / (height + 1)) :: int)));  
-END
-$$ LANGUAGE plpgsql;
+                        + 4 * (floor(4 * (y - ymin) / (height + 1)) :: int)));
+$$ LANGUAGE SQL IMMUTABLE;
 ```
 
 **3.** Apply this function and thus create CTEs `start_grid`, `stop_grid` and `corner_grid`. Not shown.
@@ -606,7 +604,7 @@ character(character) AS (
   AND    (l.start IS NULL        OR f.start = l.start)
   AND    (l.stop IS NULL         OR f.stop = l.stop)
   AND    (l.corners IS NULL      OR f.corners = l.corners)
-  AND    (l.aspect_range IS NULL OR l.aspect_range @> f.aspect :: numeric)                 
+  AND    (l.aspect_range IS NULL OR l.aspect_range @> f.aspect :: numeric)      
 ),
 ```
 
@@ -634,3 +632,18 @@ TABLE prettyprint;
 # *Demo*
 
 ![filtered](tablet.jpg)
+
+---
+
+![filtered](tablet.jpg)
+
+### **SQL is a Programming Language, Summer 2018**<br><br>
+
+# [fit] Handwriting Recognition
+## with SQL (and a tiny bit of web stuff)
+
+<br>
+<br>
+<br>
+
+Noah Doersing

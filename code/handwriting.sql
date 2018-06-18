@@ -303,7 +303,7 @@ debug AS (
   FROM features
 ),
 prettyprint AS (
-  -- Short and simple.
+  -- Not actually very pretty.
   SELECT candidate_characters, COALESCE(character, '?') AS character
   FROM candidate_characters, character
 )
