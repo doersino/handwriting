@@ -253,18 +253,21 @@ features(directions, start, stop, corners, width, height, aspect, center) AS (
          point(centerx, centery)
   FROM   aabb a
 ),
-candidate_characters(candidate_characters) AS (
+candidate_characters(candidate_character) AS (
   -- Consult first lookup table, yielding one or more potential character
   -- matching the first four cardinal directions of the pen stroke.
-  SELECT candidate_characters
+  SELECT candidate_character
   FROM   features, lookup1
   WHERE  directions[1:4] = first_four_directions
 ),
-character(character) AS (
-  -- Narrow list of potential characters down to just one.
-  SELECT character
+characters(character, features_used) AS (
+  SELECT character, (  CASE WHEN l.start          IS NULL THEN 0 ELSE 1 END
+                     + CASE WHEN l.stop           IS NULL THEN 0 ELSE 1 END
+                     + CASE WHEN l.corners        IS NULL THEN 0 ELSE 1 END
+                     + CASE WHEN l.last_direction IS NULL THEN 0 ELSE 1 END
+                     + CASE WHEN l.aspect_range   IS NULL THEN 0 ELSE 1 END) AS features_used
   FROM   features f, candidate_characters p, lookup2 l
-  WHERE  p.candidate_characters = l.candidate_characters
+  WHERE  p.candidate_character = l.character
   --AND    COALESCE(f.start = l.start,                                              true)
   --AND    COALESCE(f.stop = l.stop,                                                true)
   --AND    COALESCE(f.corners = l.corners,                                          true)
@@ -276,38 +279,47 @@ character(character) AS (
   AND    (l.last_direction IS NULL OR f.directions[array_length(f.directions, 1)] = l.last_direction)
   AND    (l.aspect_range IS NULL   OR l.aspect_range @> f.aspect :: numeric)
 ),
-debug AS (
-  -- Ugh, figuring out how to properly add double quotes around array elements
-  -- in the tuple output took way too long.
-  SELECT (TABLE candidate_characters) AS candidate_characters,
-         (SELECT character FROM character) AS character,
-         *,
-         '(''{' || (SELECT string_agg(quote_ident(unnest :: text), ',' ORDER BY ordinality)
-                    FROM candidate_characters, unnest(candidate_characters) WITH ORDINALITY)
-                || '}'', '''
-                || COALESCE((SELECT character FROM character), '?') :: text
-                || ''', '
-                || start
-                || ', '
-                || stop
-                || ', '
-                || ''''
-                || corners :: text
-                || ''', '''
-                || directions[array_length(directions, 1)]
-                || ''', numrange('
-                || aspect
-                || ','
-                || aspect
-                || '))'   AS tuple
-  FROM features
-),
-prettyprint AS (
-  -- Not actually very pretty.
-  SELECT candidate_characters, COALESCE(character, '?') AS character
-  FROM candidate_characters, character
-)
-TABLE prettyprint;
+character(character) AS (
+  -- Narrow list of potential characters down to just one.
+  SELECT character
+  FROM characters c
+  ORDER BY (SELECT COUNT(*) FROM characters d WHERE d.character = c.character) DESC,
+           features_used DESC,
+           character
+  LIMIT 1
+)--,
+--debug AS (
+--  -- Ugh, figuring out how to properly add double quotes around array elements
+--  -- in the tuple output took way too long.
+--  SELECT (TABLE candidate_characters) AS candidate_characters,
+--         (SELECT character FROM character) AS character,
+--         *,
+--         '(''{' || (SELECT string_agg(quote_ident(unnest :: text), ',' ORDER BY ordinality)
+--                    FROM candidate_characters, unnest(candidate_characters) WITH ORDINALITY)
+--                || '}'', '''
+--                || COALESCE((SELECT character FROM character), '?') :: text
+--                || ''', '
+--                || start
+--                || ', '
+--                || stop
+--                || ', '
+--                || ''''
+--                || corners :: text
+--                || ''', '''
+--                || directions[array_length(directions, 1)]
+--                || ''', numrange('
+--                || aspect
+--                || ','
+--                || aspect
+--                || '))'   AS tuple
+--  FROM features
+--),
+--prettyprint AS (
+--  -- Not actually very pretty.
+--  SELECT candidate_characters, COALESCE(character, '?') AS character
+--  FROM candidate_characters, character
+--)
+TABLE character;
 
 
 
