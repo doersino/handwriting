@@ -212,7 +212,7 @@ start_grid(n) AS (
   -- Start point (pen-down position) as an area on a 4x4 grid.
   SELECT gridpos(a.width, a.height, a.xmin, a.ymin, s.x, s.y)
   FROM   smooth s, aabb a
-  ORDER BY pos
+  ORDER BY s.pos
   LIMIT 1
 ),
 stop_grid(n) AS (
@@ -220,7 +220,7 @@ stop_grid(n) AS (
   -- throughout this query because "end" is a reserved keyword.
   SELECT gridpos(a.width, a.height, a.xmin, a.ymin, s.x, s.y)
   FROM   smooth s, aabb a
-  ORDER BY pos DESC
+  ORDER BY s.pos DESC
   LIMIT 1
 ),
 corner_grid(pos, n) AS (
@@ -240,35 +240,26 @@ features(directions, start, stop, corners, width, height, aspect, center) AS (
   -- In truth, not all features (width, height, center) are all that useful when
   -- it comes to recognizing capital characters, but extracting them here
   -- doesn't cost much and allows for future expansion.
-  SELECT (SELECT array_agg(c.direction ORDER BY c.pos)
-          FROM   cardinal_change c),
+  SELECT (SELECT array_agg(direction ORDER BY pos)
+          FROM   cardinal_change),
          (TABLE start_grid),
          (TABLE stop_grid),
-         (SELECT COALESCE(array_agg(c.n ORDER BY c.pos), '{}')
-          FROM   corner_grid c),
-         a.width,
-         a.height,
-         a.aspect,
+         (SELECT COALESCE(array_agg(n ORDER BY pos), '{}')
+          FROM   corner_grid),
+         width,
+         height,
+         aspect,
          point(centerx, centery)
-  FROM   aabb a
-),
-candidate_characters(candidate_characters) AS (
-  -- Consult first lookup table, yielding one or more potential character
-  -- matching the first four cardinal directions of the pen stroke.
-  SELECT candidate_characters
-  FROM   features, lookup1
-  WHERE  directions[1:4] = first_four_directions
+  FROM   aabb
 ),
 character(character) AS (
-  -- Narrow list of potential characters down to just one.
-  SELECT character
-  FROM   features f, candidate_characters c, lookup2 l
-  WHERE  c.candidate_characters = l.candidate_characters
-  --AND    COALESCE(f.start = l.start,                                              true)
-  --AND    COALESCE(f.stop = l.stop,                                                true)
-  --AND    COALESCE(f.corners = l.corners,                                          true)
-  --AND    COALESCE(f.directions[array_length(f.directions, 1)] = l.last_direction, true)
-  --AND    COALESCE(l.aspect_range @> f.aspect :: numeric,                          true)
+  -- Consult first lookup table, yielding one or more potential character
+  -- matching the first four cardinal directions of the pen stroke. Then narrow
+  -- list of potential characters down to just one.
+  SELECT l.character
+  FROM   features f, lookup_candidates c, lookup_bestfit l
+  WHERE  f.directions[1:4] = c.first_four_directions
+  AND    c.candidate_characters = l.candidate_characters
   AND    (l.start IS NULL          OR f.start = l.start)
   AND    (l.stop IS NULL           OR f.stop = l.stop)
   AND    (l.corners IS NULL        OR f.corners = l.corners)
@@ -278,11 +269,11 @@ character(character) AS (
 debug AS (
   -- Ugh, figuring out how to properly add double quotes around array elements
   -- in the tuple output took way too long.
-  SELECT (TABLE candidate_characters) AS candidate_characters,
+  SELECT candidate_characters,
          (SELECT character FROM character) AS character,
-         *,
+         features.*,
          '(''{' || (SELECT string_agg(quote_ident(unnest :: text), ',' ORDER BY ordinality)
-                    FROM candidate_characters, unnest(candidate_characters) WITH ORDINALITY)
+                    FROM unnest(candidate_characters) WITH ORDINALITY)
                 || '}'', '''
                 || COALESCE((SELECT character FROM character), '?') :: text
                 || ''', '
@@ -299,15 +290,17 @@ debug AS (
                 || ','
                 || aspect
                 || '))'   AS tuple
-  FROM features
+  FROM   features, lookup_candidates
+  WHERE  directions[1:4] = first_four_directions
 ),
 prettyprint AS (
   -- Not actually very pretty.
   SELECT candidate_characters, COALESCE((TABLE character), '?') AS character
-  FROM candidate_characters
+  FROM   features, lookup_candidates
+  WHERE  directions[1:4] = first_four_directions
 )
-TABLE prettyprint;
-
+TABLE debug;
+--TABLE prettyprint;
 
 
 -- Here be dragons.

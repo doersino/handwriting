@@ -27,12 +27,12 @@ $$ LANGUAGE SQL IMMUTABLE;
 -- Initial lookup table: Maps an array of up to four starting directions of a
 -- stroke to a set of potential characters. Largely taken from the essay
 -- implementation with some minor improvements.
-DROP TABLE IF EXISTS lookup1;
-CREATE TABLE lookup1 (
+DROP TABLE IF EXISTS lookup_candidates;
+CREATE TABLE lookup_candidates (
   first_four_directions cardinal_direction[],
   candidate_characters  char[]
 );
-INSERT INTO lookup1 VALUES
+INSERT INTO lookup_candidates VALUES
   ('{"▼"}',             '{"I"}'),
   ('{"▼","◀"}',         '{"J"}'),
   ('{"▼","◀","▲"}',     '{"O","J","X","U"}'),
@@ -55,7 +55,7 @@ INSERT INTO lookup1 VALUES
   ('{"◀","▼","◀"}',     '{"S"}'),
   ('{"◀","▼","◀","▼"}', '{"E"}'),
   ('{"◀","▼","▶","◀"}', '{"E","6"}'),
-  ('{"◀","▶","▼"}',     '{"T"}'),
+  ('{"◀","▶","▼"}',     '{"T","4"}'),
   ('{"◀","▶","▼","◀"}', '{"S","8"}'),
   ('{"◀","▶","▼","▶"}', '{"E"}'),
   ('{"◀","▶","◀"}',     '{"S"}'),
@@ -65,6 +65,7 @@ INSERT INTO lookup1 VALUES
   ('{"◀","▼","▶","▼"}', '{"5","8","S","E"}'),
   ('{"◀","▼","▶","▲"}', '{"6","O","C","G","9"}'),
   ('{"◀","▲","▶","▼"}', '{"9","8","Q"}'),
+  ('{"◀","▲","▼"}',     '{"4"}'),
   ('{"▶","◀","▼"}',     '{"7"}'),
   ('{"▶","◀","▼","▶"}', '{"3","2","Z"}'),
   ('{"▶","◀","▶","◀"}', '{"3"}'),
@@ -77,6 +78,8 @@ INSERT INTO lookup1 VALUES
   ('{"▶","▼","▶","▼"}', '{"3"}'),
   ('{"▶","▼","▶"}',     '{"2","Z"}'),
   ('{"▶","▼","◀","▶"}', '{"3","2","Z"}'),
+  ('{"▶","▲","◀","▼"}', '{"9","O"}'),
+  ('{"▶","▲","◀","▶"}', '{"9","O"}'),
   ('{"▲"}',             '{"I"}'),
   ('{"▲","▼"}',         '{"1","A"}'),
   ('{"▲","▼","◀"}',     '{"A"}'),
@@ -103,8 +106,8 @@ INSERT INTO lookup1 VALUES
 
 -- Final lookup table: Narrows result of initial lookup down based on extracted
 -- features. Not taken from the essay implementation.
-DROP TABLE IF EXISTS lookup2;
-CREATE TABLE lookup2 (
+DROP TABLE IF EXISTS lookup_bestfit;
+CREATE TABLE lookup_bestfit (
   candidate_characters char[],
   character            char,
   start                int,
@@ -113,13 +116,13 @@ CREATE TABLE lookup2 (
   last_direction       cardinal_direction,
   aspect_range         numrange
 );
-INSERT INTO lookup2(candidate_characters, character)
+INSERT INTO lookup_bestfit(candidate_characters, character)
   -- All single-character patterns from initial lookup table.
   SELECT DISTINCT ON (candidate_characters[1]) candidate_characters,
                                                candidate_characters[1]
-  FROM   lookup1
+  FROM   lookup_candidates
   WHERE  array_length(candidate_characters, 1) = 1;
-INSERT INTO lookup2 VALUES
+INSERT INTO lookup_bestfit VALUES
   ('{"O","J","X","U"}', 'O', 0, 0, NULL, NULL, NULL),
   ('{"O","J","X","U"}', 'O', 1, 1, NULL, NULL, NULL),
   ('{"O","J","X","U"}', 'O', 2, 2, NULL, NULL, NULL),
@@ -190,6 +193,9 @@ INSERT INTO lookup2 VALUES
   ('{"S","8"}', '8', NULL, 0, NULL, NULL, NULL),
   ('{"S","8"}', '8', NULL, 1, NULL, NULL, NULL),
   ('{"S","8"}', '8', NULL, 2, NULL, NULL, NULL),
+  ('{"T","4"}', 'T', 0, NULL, NULL, NULL, NULL),
+  ('{"T","4"}', '4', 4, NULL, NULL, NULL, NULL),
+  ('{"T","4"}', '4', 8, NULL, NULL, NULL, NULL),
   ('{"5","8","S","E"}', '5', 0, NULL, '{3,7}', NULL, NULL),
   ('{"5","8","S","E"}', '5', 0, NULL, '{3,11}', NULL, NULL),
   ('{"5","8","S","E"}', '5', 0, NULL, '{3}', NULL, NULL),
@@ -198,6 +204,10 @@ INSERT INTO lookup2 VALUES
   ('{"5","8","S","E"}', '5', 0, NULL, '{7,9}', NULL, NULL),
   ('{"5","8","S","E"}', '5', 0, NULL, '{11}', NULL, NULL),
   ('{"5","8","S","E"}', '5', 0, NULL, '{11,12}', NULL, NULL),
+  ('{"5","8","S","E"}', '5', 0, NULL, '{7,6}', NULL, NULL),
+  ('{"5","8","S","E"}', '5', 0, NULL, '{6}', NULL, NULL),
+  ('{"5","8","S","E"}', '5', 0, NULL, '{11,10}', NULL, NULL),
+  ('{"5","8","S","E"}', '5', 0, NULL, '{3,13}', NULL, NULL),
   ('{"5","8","S","E"}', '8', 0, 0, NULL, NULL, NULL),
   ('{"5","8","S","E"}', '8', 1, 1, NULL, NULL, NULL),
   ('{"5","8","S","E"}', '8', 4, 4, NULL, NULL, NULL),
@@ -267,8 +277,8 @@ INSERT INTO lookup2 VALUES
   ('{"2","Z"}', 'Z', NULL, NULL, '{1,14}', NULL, NULL),
   ('{"2","Z"}', 'Z', NULL, NULL, '{1,14,13}', NULL, NULL),
   ('{"2","Z"}', 'Z', NULL, NULL, '{0,5,15}', NULL, NULL),
-  ('{"7","1"}', '7', NULL, NULL, NULL, NULL, numrange(0,1.8)),
-  ('{"7","1"}', '1', NULL, NULL, NULL, NULL, numrange(1.8,1000)),
+  ('{"7","1"}', '7', NULL, NULL, NULL, NULL, numrange(0,2)),
+  ('{"7","1"}', '1', NULL, NULL, NULL, NULL, numrange(2,1000)),
   ('{"7","3"}', '7', NULL, NULL, '{0}', NULL, NULL),
   ('{"7","3"}', '7', NULL, NULL, '{4}', NULL, NULL),
   ('{"7","3"}', '3', NULL, NULL, '{}', NULL, NULL),
@@ -289,8 +299,28 @@ INSERT INTO lookup2 VALUES
   ('{"O","2","3","U","X"}', 'X', 0, 3, '{15}', NULL, NULL),
   ('{"O","2","3","U","X"}', 'X', 0, 1, '{15}', NULL, NULL),
   ('{"O","2","3","U","X"}', 'X', 0, 1, '{12,14}', NULL, NULL),
-  ('{"1","A"}', '1', NULL, NULL, NULL, NULL, numrange(1.6,1000)),
-  ('{"1","A"}', 'A', NULL, NULL, NULL, NULL, numrange(0,1.6)),
+  ('{"9","O"}', '9', 11, 5, NULL, NULL, NULL),
+  ('{"9","O"}', '9', 15, 5, NULL, NULL, NULL),
+  ('{"9","O"}', '9', 14, 5, NULL, NULL, NULL),
+  ('{"9","O"}', '9', 11, 4, NULL, NULL, NULL),
+  ('{"9","O"}', '9', 15, 4, NULL, NULL, NULL),
+  ('{"9","O"}', '9', 14, 4, NULL, NULL, NULL),
+  ('{"9","O"}', '9', 11, 9, NULL, NULL, NULL),
+  ('{"9","O"}', '9', 15, 9, NULL, NULL, NULL),
+  ('{"9","O"}', '9', 14, 9, NULL, NULL, NULL),
+  ('{"9","O"}', '9', 11, 8, NULL, NULL, NULL),
+  ('{"9","O"}', '9', 15, 8, NULL, NULL, NULL),
+  ('{"9","O"}', '9', 14, 8, NULL, NULL, NULL),
+  ('{"9","O"}', '9', 11, 0, NULL, NULL, NULL),
+  ('{"9","O"}', '9', 15, 0, NULL, NULL, NULL),
+  ('{"9","O"}', '9', 14, 0, NULL, NULL, NULL),
+  ('{"9","O"}', 'O', 11, 11, NULL, NULL, NULL),
+  ('{"9","O"}', 'O', 15, 15, NULL, NULL, NULL),
+  ('{"9","O"}', 'O', 14, 14, NULL, NULL, NULL),
+  ('{"9","O"}', 'O', 13, 13, NULL, NULL, NULL),
+  ('{"9","O"}', 'O', 12, 12, NULL, NULL, NULL),
+  ('{"1","A"}', '1', NULL, NULL, NULL, NULL, numrange(1.7,1000)),
+  ('{"1","A"}', 'A', NULL, NULL, NULL, NULL, numrange(0,1.7)),
   ('{"N","A"}', 'N', NULL, 0, NULL, NULL, NULL),
   ('{"N","A"}', 'N', NULL, 1, NULL, NULL, NULL),
   ('{"N","A"}', 'N', NULL, 4, NULL, NULL, NULL),
@@ -317,6 +347,12 @@ INSERT INTO lookup2 VALUES
   ('{"8","9","C","G","S","6"}', '9', 9, 11, NULL, NULL, NULL),
   ('{"8","9","C","G","S","6"}', '9', 9, 14, NULL, NULL, NULL),
   ('{"8","9","C","G","S","6"}', '9', 9, 15, NULL, NULL, NULL),
+  ('{"8","9","C","G","S","6"}', '9', 15, 4, NULL, NULL, NULL),
+  ('{"8","9","C","G","S","6"}', '9', 15, 9, NULL, NULL, NULL),
+  ('{"8","9","C","G","S","6"}', '9', 14, 4, NULL, NULL, NULL),
+  ('{"8","9","C","G","S","6"}', '9', 14, 9, NULL, NULL, NULL),
+  ('{"8","9","C","G","S","6"}', '9', 15, 5, NULL, NULL, NULL),
+  ('{"8","9","C","G","S","6"}', '9', 14, 5, NULL, NULL, NULL),
   ('{"8","9","C","G","S","6"}', 'C', 0, 12, NULL, NULL, NULL),
   ('{"8","9","C","G","S","6"}', 'C', 0, 8, NULL, NULL, NULL),
   ('{"8","9","C","G","S","6"}', 'C', 4, 8, NULL, NULL, NULL),
