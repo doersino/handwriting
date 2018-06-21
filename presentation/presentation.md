@@ -38,6 +38,8 @@ In the early 60s, keyboard proficiency was less widespread, so other input metho
 
 ---
 
+^ wonder how he felt the first time he used an ipad
+
 ![autoplay](alankay_letterboxed.mp4)
 
 ---
@@ -99,6 +101,10 @@ tablet(pos, x, y) AS (
 [^2]: `https://www.rand.org/pubs/research_memoranda/RM5016.html`, `http://jackschaedler.github.io/handwriting-recognition/`
 
 ---
+
+^ here: just average
+^ see around 1.0: right angle. bad!
+^ shortens the stroke in both x and y => choose weight/smoothingfactor wisely
 
 [**Smoothing:** Removes *quantization noise*. Compute weighted average of most recently smoothed point and incoming point.]()
 
@@ -282,10 +288,8 @@ thin(pos, x, y) AS (
 ```sql
 curve(pos, x, y, direction) AS (
   SELECT pos, x, y,
-         COALESCE(degrees(-atan2( y - lag(y) OVER (ORDER BY pos),               
-                                 -x + lag(x) OVER (ORDER BY pos))
-                         ) + 180,
-                  90)
+         degrees(-atan2( y - lag(y) OVER (ORDER BY pos),               
+                        -x + lag(x) OVER (ORDER BY pos))) + 180
   FROM   thin
 ),
 ```
@@ -303,12 +307,15 @@ CREATE TYPE cardinal_direction AS ENUM('▶', '▲', '◀', '▼');      �
 ```sql
 cardinal(pos, direction) AS (
   SELECT pos,
-         (enum_range(NULL :: cardinal_direction))[(direction / 90) :: int + 1]  
+         (enum_range(NULL :: cardinal_direction))[(direction / 90) :: int % 4
+                                                                          + 1]  
   FROM   curve
 ),
 ```
 
 ---
+
+^ coalesce instead of "() is null or" because code duplication avoidance
 
 **4.** Only keep changes of the cardinal direction, i.e. a *new* direction that occurs at least *twice in succession*.
 
@@ -381,13 +388,13 @@ TODO talk about: why not % (because it can yield negative numbers)? or rewrite w
 corner(pos, x, y) AS (
   SELECT pos, x, y
   FROM   (SELECT pos, x, y, (
-                   angdiff(lag(direction) OVER win, direction) < 22.5
-                   AND angdiff(direction, lead(direction) OVER win) > :cornerangle
-                   AND angdiff(lead(direction) OVER win, lead(direction, 2) OVER win) < 22.5
-                 ) OR (  -- Immediate direction change OR one-segment turn.
                    angdiff(lag(direction, 2) OVER win, lag(direction) OVER win) < 22.5
-                   AND angdiff(lag(direction) OVER win, lead(direction) OVER win) > :cornerangle
-                   AND angdiff(lead(direction) OVER win, lead(direction, 2) OVER win) < 22.5
+                   AND angdiff(lag(direction) OVER win, direction) > :cornerangle
+                   AND angdiff(direction, lead(direction) OVER win) < 22.5
+                 ) OR (  -- Immediate direction change OR one-segment turn.
+                   angdiff(lag(direction, 3) OVER win, lag(direction, 2) OVER win) < 22.5
+                   AND angdiff(lag(direction, 2) OVER win, direction) > :cornerangle
+                   AND angdiff(direction, lead(direction) OVER win) < 22.5
                  ) AS is_corner
           FROM   curve
           WINDOW win AS (ORDER BY pos)) AS _(pos, x, y, is_corner)
@@ -403,13 +410,13 @@ corner(pos, x, y) AS (
 corner(pos, x, y) AS (
   SELECT pos, x, y
   FROM   (SELECT pos, x, y, (
-                   angdiff(lag(direction) OVER win, direction) < 22.5
-                   AND angdiff(direction, lead(direction) OVER win) > :cornerangle
-                   AND angdiff(lead(direction) OVER win, lead(direction, 2) OVER win) < 22.5
-                 ) OR (  -- Immediate direction change OR one-segment turn.
                    angdiff(lag(direction, 2) OVER win, lag(direction) OVER win) < 22.5
-                   AND angdiff(lag(direction) OVER win, lead(direction) OVER win) > :cornerangle
-                   AND angdiff(lead(direction) OVER win, lead(direction, 2) OVER win) < 22.5
+                   AND angdiff(lag(direction) OVER win, direction) > :cornerangle
+                   AND angdiff(direction, lead(direction) OVER win) < 22.5
+                 ) OR (  -- Immediate direction change OR one-segment turn.
+                   angdiff(lag(direction, 3) OVER win, lag(direction, 2) OVER win) < 22.5
+                   AND angdiff(lag(direction, 2) OVER win, direction) > :cornerangle
+                   AND angdiff(direction, lead(direction) OVER win) < 22.5
                  ) AS is_corner
           FROM   curve
           WINDOW win AS (ORDER BY pos)) AS _(pos, x, y, is_corner)
@@ -425,13 +432,13 @@ corner(pos, x, y) AS (
 corner(pos, x, y) AS (
   SELECT pos, x, y
   FROM   (SELECT pos, x, y, (
-                   angdiff(lag(direction) OVER win, direction) < 22.5
-                   AND angdiff(direction, lead(direction) OVER win) > :cornerangle
-                   AND angdiff(lead(direction) OVER win, lead(direction, 2) OVER win) < 22.5
-                 ) OR (  -- Immediate direction change OR one-segment turn.
                    angdiff(lag(direction, 2) OVER win, lag(direction) OVER win) < 22.5
-                   AND angdiff(lag(direction) OVER win, lead(direction) OVER win) > :cornerangle
-                   AND angdiff(lead(direction) OVER win, lead(direction, 2) OVER win) < 22.5
+                   AND angdiff(lag(direction) OVER win, direction) > :cornerangle
+                   AND angdiff(direction, lead(direction) OVER win) < 22.5
+                 ) OR (  -- Immediate direction change OR one-segment turn.
+                   angdiff(lag(direction, 3) OVER win, lag(direction, 2) OVER win) < 22.5
+                   AND angdiff(lag(direction, 2) OVER win, direction) > :cornerangle
+                   AND angdiff(direction, lead(direction) OVER win) < 22.5
                  ) AS is_corner
           FROM   curve
           WINDOW win AS (ORDER BY pos)) AS _(pos, x, y, is_corner)
@@ -447,13 +454,13 @@ corner(pos, x, y) AS (
 corner(pos, x, y) AS (
   SELECT pos, x, y
   FROM   (SELECT pos, x, y, (
-                   angdiff(lag(direction) OVER win, direction) < 22.5
-                   AND angdiff(direction, lead(direction) OVER win) > :cornerangle
-                   AND angdiff(lead(direction) OVER win, lead(direction, 2) OVER win) < 22.5
-                 ) OR (  -- Immediate direction change OR one-segment turn.
                    angdiff(lag(direction, 2) OVER win, lag(direction) OVER win) < 22.5
-                   AND angdiff(lag(direction) OVER win, lead(direction) OVER win) > :cornerangle
-                   AND angdiff(lead(direction) OVER win, lead(direction, 2) OVER win) < 22.5
+                   AND angdiff(lag(direction) OVER win, direction) > :cornerangle
+                   AND angdiff(direction, lead(direction) OVER win) < 22.5
+                 ) OR (  -- Immediate direction change OR one-segment turn.
+                   angdiff(lag(direction, 3) OVER win, lag(direction, 2) OVER win) < 22.5
+                   AND angdiff(lag(direction, 2) OVER win, direction) > :cornerangle
+                   AND angdiff(direction, lead(direction) OVER win) < 22.5
                  ) AS is_corner
           FROM   curve
           WINDOW win AS (ORDER BY pos)) AS _(pos, x, y, is_corner)
@@ -510,17 +517,17 @@ $$ LANGUAGE SQL IMMUTABLE;
 
 ```sql
 features(center, start, stop, directions, corners, width, height, aspect) AS (  
-  SELECT point(centerx, centery),
+  SELECT (SELECT array_agg(direction ORDER BY pos)
+          FROM   cardinal_change),
          (TABLE start_grid),
          (TABLE stop_grid),
-         (SELECT array_agg(c.direction ORDER BY c.pos)
-          FROM   cardinal_change c),
-         (SELECT array_agg(c.n ORDER BY c.pos)
-          FROM   corner_grid c),
-         a.width,
-         a.height,
-         a.aspect
-  FROM   aabb a
+         (SELECT COALESCE(array_agg(n ORDER BY pos), '{}')
+          FROM   corner_grid),
+         width,
+         height,
+         aspect,
+         point(centerx, centery)
+  FROM   aabb
 ),
 ```
 
@@ -549,11 +556,11 @@ Less flexible than the procedure presented in the original memo, but significant
 **1.** Determine initial set of potential characters.
 
 ```sql
-CREATE TABLE lookup1 (
+CREATE TABLE lookup_candidates (
   first_four_directions cardinal_direction[],                                   
   candidate_characters  char[]
 );
-INSERT INTO lookup1 VALUES
+INSERT INTO lookup_candidates VALUES
   ('{"▼"}',             '{"I"}'),
   ('{"▼","◀"}',         '{"J"}'),
   ('{"▼","◀","▲"}',     '{"O","J","X","U"}'),
@@ -571,7 +578,7 @@ INSERT INTO lookup1 VALUES
 **2.** Find best fit by feature matching. Read `NULL`s as "don't care".
 
 ```sql
-CREATE TABLE lookup2 (
+CREATE TABLE lookup_bestfit (
   candidate_characters char[],
   character            char,
   start                int,
@@ -579,9 +586,9 @@ CREATE TABLE lookup2 (
   corners              int[],
   aspect_range         numrange
 );
-INSERT INTO lookup2  -- All single-character patterns from initial lookup table.
+INSERT INTO lookup_bestfit  -- All single-character patterns from first lookup. 
   ...
-INSERT INTO lookup2 VALUES
+INSERT INTO lookup_bestfit VALUES
   ('{"M","N"}', 'M', NULL, 12, NULL, NULL),  -- End point bottom right.
   ('{"M","N"}', 'N', NULL, 0,  NULL, NULL),  -- End point top right.
   ...
@@ -592,58 +599,111 @@ INSERT INTO lookup2 VALUES
 **3.** Consult *both* lookup tables in order.
 
 ```sql
-candidate_characters(candidate_characters) AS (
-  SELECT candidate_characters
-  FROM   features, lookup1
-  WHERE  directions[1:4] = first_four_directions
-),
 character(character) AS (
-  SELECT character
-  FROM   features f, candidate_characters p, lookup2 l
-  WHERE  p.candidate_characters = l.candidate_characters
-  AND    (l.start IS NULL        OR f.start = l.start)
-  AND    (l.stop IS NULL         OR f.stop = l.stop)
-  AND    (l.corners IS NULL      OR f.corners = l.corners)
-  AND    (l.aspect_range IS NULL OR l.aspect_range @> f.aspect :: numeric)      
+  SELECT l.character
+  FROM   features f, lookup_candidates c, lookup_bestfit l
+  WHERE  f.directions[1:4] = c.first_four_directions
+  AND    c.candidate_characters = l.candidate_characters
+  AND    (l.start IS NULL          OR f.start = l.start)
+  AND    (l.stop IS NULL           OR f.stop = l.stop)
+  AND    (l.corners IS NULL        OR f.corners = l.corners)
+  AND    (l.aspect_range IS NULL   OR l.aspect_range @> f.aspect :: numeric)    
 ),
 ```
 
 ---
+
+**3.** Consult *both* lookup tables in order.
+
+```sql, [.highlight: 4]
+character(character) AS (
+  SELECT l.character
+  FROM   features f, lookup_candidates c, lookup_bestfit l
+  WHERE  f.directions[1:4] = c.first_four_directions
+  AND    c.candidate_characters = l.candidate_characters
+  AND    (l.start IS NULL          OR f.start = l.start)
+  AND    (l.stop IS NULL           OR f.stop = l.stop)
+  AND    (l.corners IS NULL        OR f.corners = l.corners)
+  AND    (l.aspect_range IS NULL   OR l.aspect_range @> f.aspect :: numeric)    
+),
+```
+
+---
+
+**3.** Consult *both* lookup tables in order.
+
+```sql, [.highlight: 5]
+character(character) AS (
+  SELECT l.character
+  FROM   features f, lookup_candidates c, lookup_bestfit l
+  WHERE  f.directions[1:4] = c.first_four_directions
+  AND    c.candidate_characters = l.candidate_characters
+  AND    (l.start IS NULL          OR f.start = l.start)
+  AND    (l.stop IS NULL           OR f.stop = l.stop)
+  AND    (l.corners IS NULL        OR f.corners = l.corners)
+  AND    (l.aspect_range IS NULL   OR l.aspect_range @> f.aspect :: numeric)    
+),
+```
+
+---
+
+**3.** Consult *both* lookup tables in order.
+
+```sql, [.highlight: 6-9]
+character(character) AS (
+  SELECT l.character
+  FROM   features f, lookup_candidates c, lookup_bestfit l
+  WHERE  f.directions[1:4] = c.first_four_directions
+  AND    c.candidate_characters = l.candidate_characters
+  AND    (l.start IS NULL          OR f.start = l.start)
+  AND    (l.stop IS NULL           OR f.stop = l.stop)
+  AND    (l.corners IS NULL        OR f.corners = l.corners)
+  AND    (l.aspect_range IS NULL   OR l.aspect_range @> f.aspect :: numeric)    
+),
+```
+
+---
+
+**3.** Consult *both* lookup tables in order.
+
+```sql, [.highlight: 2]
+character(character) AS (
+  SELECT l.character
+  FROM   features f, lookup_candidates c, lookup_bestfit l
+  WHERE  f.directions[1:4] = c.first_four_directions
+  AND    c.candidate_characters = l.candidate_characters
+  AND    (l.start IS NULL          OR f.start = l.start)
+  AND    (l.stop IS NULL           OR f.stop = l.stop)
+  AND    (l.corners IS NULL        OR f.corners = l.corners)
+  AND    (l.aspect_range IS NULL   OR l.aspect_range @> f.aspect :: numeric)    
+),
+```
 
 **4.** And we're done!
 
-```sql
-prettyprint AS (
-  SELECT candidate_characters, COALESCE(character, '?') AS character            
-  FROM candidate_characters, character
-)
-TABLE prettyprint;
-```
+---
 
-<br>
+^ no single operation that takes the vast majority of time => evenly split
 
-**Performance:** Most algorithms designed in the 60's will run on modern hardware *just fine* – this one is no exception: The `WITH` clause terminates after around 15 ms.
+**Performance:** Most algorithms designed in the 60's will run on modern hardware *just fine* – this one is no exception:
+
+The whole chain of queries terminates after **~15 ms**.
+
 **SQL is, *after all*, a programming language.**
 
-![](plan.png)
+![right](plan.png)
 
 ---
 
-# *Demo*
-
-![filtered](tablet.jpg)
-
----
-
-![filtered](tablet.jpg)
-
-### **SQL is a Programming Language, Summer 2018**<br><br>
-
-# [fit] Handwriting Recognition
-## with SQL (and a tiny bit of web stuff)
-
-<br>
 <br>
 <br>
 
+#[fit] *       Demo       *
+
+<br>
+
+**Handwriting Recognition with SQL**
 Noah Doersing
+
+![filtered](tablet.jpg)
+
