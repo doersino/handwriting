@@ -13,7 +13,6 @@
 --
 -- Example (the letter A):
 --\set pen '[ { "x": 37, "y": 31 }, { "x": 37, "y": 31 }, { "x": 37, "y": 34 }, { "x": 37, "y": 39 }, { "x": 38, "y": 43 }, { "x": 41, "y": 57 }, { "x": 44, "y": 66 }, { "x": 48, "y": 76 }, { "x": 52, "y": 86 }, { "x": 54, "y": 92 }, { "x": 56, "y": 96 }, { "x": 58, "y": 99 }, { "x": 59, "y": 101 }, { "x": 59, "y": 102 }, { "x": 60, "y": 102 }, { "x": 60, "y": 102 }, { "x": 60, "y": 101 }, { "x": 60, "y": 98 }, { "x": 61, "y": 90 }, { "x": 64, "y": 80 }, { "x": 65, "y": 73 }, { "x": 67, "y": 66 }, { "x": 69, "y": 60 }, { "x": 71, "y": 52 }, { "x": 72, "y": 49 }, { "x": 72, "y": 46 }, { "x": 73, "y": 44 }, { "x": 74, "y": 42 }, { "x": 74, "y": 41 }, { "x": 74, "y": 40 }, { "x": 74, "y": 40 }, { "x": 74, "y": 39 }, { "x": 74, "y": 39 }, { "x": 74, "y": 39 }, { "x": 74, "y": 39 }, { "x": 74, "y": 39 }, { "x": 74, "y": 39 }, { "x": 72, "y": 40 }, { "x": 67, "y": 43 }, { "x": 63, "y": 45 }, { "x": 60, "y": 47 }, { "x": 58, "y": 49 }, { "x": 56, "y": 50 }, { "x": 54, "y": 52 }, { "x": 52, "y": 52 }, { "x": 51, "y": 53 }, { "x": 50, "y": 54 }, { "x": 50, "y": 54 }, { "x": 50, "y": 54 }, { "x": 49, "y": 54 }, { "x": 49, "y": 54 }, { "x": 49, "y": 54 }, { "x": 49, "y": 54 }, { "x": 49, "y": 55 }, { "x": 49, "y": 55 }, { "x": 49, "y": 55 }, { "x": 48, "y": 55 }, { "x": 48, "y": 55 }, { "x": 48, "y": 55 }, { "x": 47, "y": 56 }, { "x": 46, "y": 56 }, { "x": 46, "y": 56 }, { "x": 46, "y": 56 }, { "x": 46, "y": 56 } ]'
-\set pen '[ { "x": 65, "y": 70 }, { "x": 65, "y": 70 }, { "x": 65, "y": 71 }, { "x": 65, "y": 72 }, { "x": 65, "y": 74 }, { "x": 65, "y": 77 }, { "x": 65, "y": 79 }, { "x": 65, "y": 81 }, { "x": 66, "y": 84 }, { "x": 68, "y": 86 }, { "x": 70, "y": 88 }, { "x": 80, "y": 92 }, { "x": 81, "y": 92 }, { "x": 85, "y": 92 }, { "x": 88, "y": 92 }, { "x": 91, "y": 92 }, { "x": 94, "y": 90 }, { "x": 96, "y": 89 }, { "x": 98, "y": 87 }, { "x": 100, "y": 84 }, { "x": 101, "y": 81 }, { "x": 102, "y": 78 }, { "x": 102, "y": 76 }, { "x": 102, "y": 72 }, { "x": 102, "y": 69 }, { "x": 101, "y": 64 }, { "x": 100, "y": 62 }, { "x": 99, "y": 60 }, { "x": 98, "y": 58 }, { "x": 96, "y": 56 }, { "x": 94, "y": 54 }, { "x": 92, "y": 53 }, { "x": 89, "y": 53 }, { "x": 86, "y": 52 }, { "x": 84, "y": 52 }, { "x": 81, "y": 52 }, { "x": 78, "y": 53 }, { "x": 76, "y": 54 }, { "x": 75, "y": 55 }, { "x": 74, "y": 56 }, { "x": 73, "y": 57 }, { "x": 72, "y": 58 }, { "x": 71, "y": 60 }, { "x": 70, "y": 62 }, { "x": 70, "y": 63 }, { "x": 70, "y": 64 }, { "x": 70, "y": 65 }, { "x": 70, "y": 66 }, { "x": 70, "y": 67 }, { "x": 70, "y": 68 }, { "x": 70, "y": 69 } ]'
 
 ---------------------------------
 -- TOGGLES, KNOBS AND SWITCHES --
@@ -167,13 +166,13 @@ corner(pos, x, y) AS (
   -- between "turn" segment with an arbitrary direction.
   SELECT pos, x, y
   FROM   (SELECT pos, x, y, (
-                   angdiff(lag(direction) OVER win, direction) < 22.5
-                   AND angdiff(direction, lead(direction) OVER win) > :cornerangle
-                   AND angdiff(lead(direction) OVER win, lead(direction, 2) OVER win) < 22.5
-                 ) OR (  -- Immediate direction change OR one-segment turn.
                    angdiff(lag(direction, 2) OVER win, lag(direction) OVER win) < 22.5
-                   AND angdiff(lag(direction) OVER win, lead(direction) OVER win) > :cornerangle
-                   AND angdiff(lead(direction) OVER win, lead(direction, 2) OVER win) < 22.5
+                   AND angdiff(lag(direction) OVER win, direction) > :cornerangle
+                   AND angdiff(direction, lead(direction) OVER win) < 22.5
+                 ) OR (  -- Immediate direction change OR one-segment turn.
+                   angdiff(lag(direction, 3) OVER win, lag(direction, 2) OVER win) < 22.5
+                   AND angdiff(lag(direction, 2) OVER win, direction) > :cornerangle
+                   AND angdiff(direction, lead(direction) OVER win) < 22.5
                  ) AS is_corner
           FROM   curve
           WINDOW win AS (ORDER BY pos)) AS _(pos, x, y, is_corner)
