@@ -266,8 +266,8 @@ characters(character, features_used) AS (
                      + CASE WHEN l.corners        IS NULL THEN 0 ELSE 1 END
                      + CASE WHEN l.last_direction IS NULL THEN 0 ELSE 1 END
                      + CASE WHEN l.aspect_range   IS NULL THEN 0 ELSE 1 END) AS features_used
-  FROM   features f, candidate_characters p, lookup2 l
-  WHERE  p.candidate_character = l.character
+  FROM   features f, candidate_characters c, lookup2 l
+  WHERE  c.candidate_character = l.character
   --AND    COALESCE(f.start = l.start,                                              true)
   --AND    COALESCE(f.stop = l.stop,                                                true)
   --AND    COALESCE(f.corners = l.corners,                                          true)
@@ -278,16 +278,24 @@ characters(character, features_used) AS (
   AND    (l.corners IS NULL        OR f.corners = l.corners)
   AND    (l.last_direction IS NULL OR f.directions[array_length(f.directions, 1)] = l.last_direction)
   AND    (l.aspect_range IS NULL   OR l.aspect_range @> f.aspect :: numeric)
+
+    UNION ALL
+
+  SELECT c.candidate_character, 0
+  FROM   candidate_characters c
+  WHERE  1 = (SELECT COUNT(*)
+              FROM   candidate_characters d
+              WHERE  c.candidate_character = d.candidate_character)
 ),
 character(character) AS (
   -- Narrow list of potential characters down to just one.
-  SELECT character
+  SELECT c.character
   FROM characters c
   ORDER BY (SELECT COUNT(*) FROM characters d WHERE d.character = c.character) DESC,
-           features_used DESC,
-           character
+           c.features_used DESC,
+           c.character
   LIMIT 1
-)--,
+),
 --debug AS (
 --  -- Ugh, figuring out how to properly add double quotes around array elements
 --  -- in the tuple output took way too long.
@@ -314,12 +322,14 @@ character(character) AS (
 --                || '))'   AS tuple
 --  FROM features
 --),
---prettyprint AS (
---  -- Not actually very pretty.
---  SELECT candidate_characters, COALESCE(character, '?') AS character
---  FROM candidate_characters, character
---)
-TABLE character;
+prettyprint AS (
+  -- Not actually very pretty.
+  SELECT array_agg(candidate_characters.candidate_character),
+         COALESCE(character, '?') AS character
+  FROM   candidate_characters, character
+  GROUP BY character
+)
+TABLE prettyprint;
 
 
 
