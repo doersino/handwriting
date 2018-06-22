@@ -5,12 +5,14 @@ CREATE TYPE cardinal_direction AS ENUM('▶', '▲', '◀', '▼');
 -- Compute absolute difference between two angles (which is trivial in most
 -- cases but not when the two angles cross 0, e.g. when alpha = 350 and beta =
 -- 10) given in degrees using the formula atan2(sin(a-b), cos(a-b)) as per
--- https://stackoverflow.com/a/2007279.
+-- https://stackoverflow.com/a/2007279 (alternate version via
+-- https://gamedev.stackexchange.com/a/4472).
 DROP FUNCTION IF EXISTS angdiff;
 CREATE OR REPLACE FUNCTION angdiff(alpha double precision,
                                    beta double precision) RETURNS real AS $$
   SELECT abs(degrees(atan2(sin(radians(alpha - beta)),
                            cos(radians(alpha - beta))))) :: real;
+  --SELECT (180 - abs(abs(alpha - beta) - 180)) :: real;
 $$ LANGUAGE SQL IMMUTABLE;
 
 -- Compute position on 4x4 grid from an (x,y) coordinate pair. Used during
@@ -210,6 +212,8 @@ INSERT INTO lookup_bestfit VALUES
   ('{"5","8","S","E"}', '5', 0, NULL, '{3,13}', NULL, NULL),
   ('{"5","8","S","E"}', '8', 0, 0, NULL, NULL, NULL),
   ('{"5","8","S","E"}', '8', 1, 1, NULL, NULL, NULL),
+  ('{"5","8","S","E"}', '8', 1, 0, NULL, NULL, NULL),
+  ('{"5","8","S","E"}', '8', 0, 1, NULL, NULL, NULL),
   ('{"5","8","S","E"}', '8', 4, 4, NULL, NULL, NULL),
   ('{"5","8","S","E"}', 'S', NULL, 15, '{}', NULL, NULL),
   ('{"5","8","S","E"}', 'S', NULL, 14, '{}', NULL, NULL),
@@ -217,6 +221,7 @@ INSERT INTO lookup_bestfit VALUES
   ('{"5","8","S","E"}', 'E', NULL, 13, NULL, NULL, NULL),
   ('{"6","O","C","G","9"}', '6', 0, 11, '{}', NULL, NULL),
   ('{"6","O","C","G","9"}', '6', 0, 10, '{}', NULL, NULL),
+  ('{"6","O","C","G","9"}', '6', 0, 7, '{}', NULL, NULL),
   ('{"6","O","C","G","9"}', 'O', 0, 0, NULL, NULL, NULL),
   ('{"6","O","C","G","9"}', 'O', 1, 1, NULL, NULL, NULL),
   ('{"6","O","C","G","9"}', 'O', 4, 4, NULL, NULL, NULL),
@@ -228,7 +233,7 @@ INSERT INTO lookup_bestfit VALUES
   ('{"6","O","C","G","9"}', 'C', 4, 12, NULL, NULL, NULL),
   ('{"6","O","C","G","9"}', 'C', 8, 12, NULL, NULL, NULL),
   ('{"6","O","C","G","9"}', 'G', 0, 9, NULL, NULL, NULL),
-  ('{"6","O","C","G","9"}', 'G', 0, 10, NULL, NULL, NULL),
+  ('{"6","O","C","G","9"}', 'G', 0, 10, '{8}', NULL, NULL),
   ('{"6","O","C","G","9"}', 'G', 0, 5, NULL, NULL, NULL),
   ('{"6","O","C","G","9"}', '9', 0, 14, NULL, NULL, NULL),
   ('{"6","O","C","G","9"}', '9', 0, 15, NULL, NULL, NULL),
