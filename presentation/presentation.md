@@ -1,9 +1,5 @@
 slidenumbers: true
 
-^ footer: Hand Writing Recognition
-
-^ ---
-
 ![filtered](tablet.jpg)
 
 ### **SQL is a Programming Language, Summer 2018**<br><br>
@@ -29,7 +25,7 @@ In the early 60s, keyboard proficiency was less widespread, so other input metho
 
 ^ You know, before their time, really, because they had these massive CRT screens etc., no iPad.
 
-^ alan kay, pioneered object-oriented programming and window-based GUIs
+^ alan kay, pioneered object-oriented programming and window-based GUIs at Xerox PARC
 
 ![](camera.png)  Alan Kay, "Doing with Images Makes Symbols" (1987):[^1]
      **"None of us can type, can you do something about that?"**
@@ -88,6 +84,8 @@ tablet(pos, x, y) AS (
 
 ---
 
+^ MEMO & ESSAY => visualizations
+
 ![original](approach.png)
 
 ## Approach[^2]
@@ -112,27 +110,7 @@ tablet(pos, x, y) AS (
 
 ---
 
-Variable `smoothingfactor` must be set before running the query. Sensible values: between `0.5` and `0.8`.
-
-```sql
-smooth(pos, x, y) AS (
-  SELECT pos, x :: real, y :: real
-  FROM   tablet
-  WHERE  pos = 1
-
-    UNION ALL
-
-  SELECT t.pos,
-         (:smoothingfactor * s.x + (1.0 - :smoothingfactor) * t.x) :: real AS x,
-         (:smoothingfactor * s.y + (1.0 - :smoothingfactor) * t.y) :: real AS y
-  FROM   smooth s, tablet t
-  WHERE  t.pos = s.pos + 1
-),
-```
-
----
-
-Variable `smoothingfactor` must be set before running the query. Sensible values: between `0.5` and `0.8`.
+^ some typecasts to make the types play nicely (rather: avoid increases in precision due to recursion and `numeric`)
 
 ```sql, [.highlight: 2-4]
 smooth(pos, x, y) AS (
@@ -150,9 +128,10 @@ smooth(pos, x, y) AS (
 ),
 ```
 
+Variable `smoothingfactor` must be set before running the query. Sensible values: between `0.5` and `0.8`.
+
 ---
 
-Variable `smoothingfactor` must be set before running the query. Sensible values: between `0.5` and `0.8`.
 
 ```sql, [.highlight: 8-12]
 smooth(pos, x, y) AS (
@@ -170,6 +149,28 @@ smooth(pos, x, y) AS (
 ),
 ```
 
+Variable `smoothingfactor` must be set before running the query. Sensible values: between `0.5` and `0.8`.
+
+---
+
+```sql
+smooth(pos, x, y) AS (
+  SELECT pos, x :: real, y :: real
+  FROM   tablet
+  WHERE  pos = 1
+
+    UNION ALL
+
+  SELECT t.pos,
+         (:smoothingfactor * s.x + (1.0 - :smoothingfactor) * t.x) :: real AS x,
+         (:smoothingfactor * s.y + (1.0 - :smoothingfactor) * t.y) :: real AS y
+  FROM   smooth s, tablet t
+  WHERE  t.pos = s.pos + 1
+),
+```
+
+Variable `smoothingfactor` must be set before running the query. Sensible values: between `0.5` and `0.8`.
+
 ---
 
 [**Thinning:** Eases further *processing requirements*. Reject points within a certain distance from the most recent accepted point.]()
@@ -178,7 +179,9 @@ smooth(pos, x, y) AS (
 
 ---
 
-```sql
+^ pick the first smoothed coord pair after the most recently accepted thinned point for which sqrt(...) holds
+
+```sql, [.highlight: 11-15]
 thin(pos, x, y) AS (
   SELECT *
   FROM   smooth
@@ -200,51 +203,7 @@ thin(pos, x, y) AS (
 
 ---
 
-```sql, [.highlight: 11-12,14-15]
-thin(pos, x, y) AS (
-  SELECT *
-  FROM   smooth
-  WHERE  pos = 1
-
-    UNION ALL
-
-  SELECT *
-  FROM   (
-    SELECT s.pos, s.x, s.y
-    FROM   thin t, smooth s
-    WHERE  s.pos > t.pos
-    AND    :thinningsize < |/ (s.x - t.x)^2 + (s.y - t.y)^2                     
-    ORDER BY s.pos
-    LIMIT 1
-  ) AS _
-),
-```
-
----
-
-```sql, [.highlight: 13]
-thin(pos, x, y) AS (
-  SELECT *
-  FROM   smooth
-  WHERE  pos = 1
-
-    UNION ALL
-
-  SELECT *
-  FROM   (
-    SELECT s.pos, s.x, s.y
-    FROM   thin t, smooth s
-    WHERE  s.pos > t.pos
-    AND    :thinningsize < |/ (s.x - t.x)^2 + (s.y - t.y)^2                     
-    ORDER BY s.pos
-    LIMIT 1
-  ) AS _
-),
-```
-
----
-
-^ because order by is illegal in recursive part
+^ because `ORDER BY` is illegal in recursive part
 
 ```sql, [.highlight: 8,9,16]
 thin(pos, x, y) AS (
@@ -267,6 +226,30 @@ thin(pos, x, y) AS (
 ```
 
 ---
+
+```sql
+thin(pos, x, y) AS (
+  SELECT *
+  FROM   smooth
+  WHERE  pos = 1
+
+    UNION ALL
+
+  SELECT *
+  FROM   (
+    SELECT s.pos, s.x, s.y
+    FROM   thin t, smooth s
+    WHERE  s.pos > t.pos
+    AND    :thinningsize < |/ (s.x - t.x)^2 + (s.y - t.y)^2                     
+    ORDER BY s.pos
+    LIMIT 1
+  ) AS _
+),
+```
+
+---
+
+^ division into four zones done by rounding `angle/90
 
 [**Curvature detection:** Compute *cardinal directions* ▲▼◀▶ of line segments between point pairs. Discard sequential duplicates.]()
 
@@ -296,6 +279,10 @@ curve(pos, x, y, direction) AS (
 
 ---
 
+^ exploit **rounding behavior** of `int` cast
+
+^ `% 4` because of that
+
 **2.** Define appropriate `ENUM` type with fancy Unicode triangles:
 
 ```sql
@@ -315,9 +302,9 @@ cardinal(pos, direction) AS (
 
 ---
 
-^ coalesce instead of "() is null or" because code duplication avoidance
+^ `COALESCE` instead of "() IS NULL OR..." because code duplication avoidance
 
-**4.** Only keep changes of the cardinal direction, i.e. a *new* direction that occurs at least *twice in succession*.
+**4.** Only keep changes of the cardinal direction, i.e. a *new* direction that, additionally, occurs at least *twice in succession*.
 
 ```sql
 cardinal_change(pos, direction) AS (
@@ -361,24 +348,23 @@ cardinal_change(pos, direction) AS (
 <br>
 <br>
 
-[Corners lie between two line segments going in the same direction and two segments going in a wildly different direction, with an optional in-between "turn" segment.]()
+[Corners lie between two line segments going in the *same direction* and two segments going in a *wildly different direction*, with an optional in-between "turn" segment.]()
 
 
 ---
 
-**1.** Define function that computes angle difference.
+^ multiple ways of doing this. search on stack overflow for the wildest stuff.
+
+**1.** Define function that computes angle difference (trivial for angle pairs like 10° and 20°, but less so for 350° and 30°).
 
 ```sql
 CREATE OR REPLACE FUNCTION angdiff(alpha double precision,
-                                   beta double precision) RETURNS real AS $$
+                                   beta double precision) RETURNS real AS $$    
   SELECT abs(degrees(atan2(sin(radians(alpha - beta)),
                            cos(radians(alpha - beta))))) :: real;
+  --SELECT (180 - abs(abs(alpha - beta) - 180)) :: real;
 $$ LANGUAGE SQL IMMUTABLE;
 ```
-
-Trivial for angle pairs like 10° and 20°, but less so for 350° and 30°.
-
-TODO talk about: why not % (because it can yield negative numbers)? or rewrite with a abs before mod?
 
 ---
 
@@ -470,6 +456,10 @@ corner(pos, x, y) AS (
 
 ---
 
+^ O: start = end
+
+^ 1/7: aspect ratio
+
 [**Feature extraction:** Extract some *supplementary features* that will help discern between different characters later on: Start point, end point, aspect ratio, ...]()
 
 [Transform from absolute pixel positions to 4x4 grid segments.]()
@@ -497,7 +487,7 @@ aabb(xmin, xmax, ymin, ymax, aspect, width, height, centerx, centery) AS (
 
 ---
 
-**2.** Define function for transforming coordinates of start, end and corners into grid positions.
+**2.** Define function for *transforming* coordinates of start, end and corners into grid positions.
 
 ```sql
 CREATE OR REPLACE FUNCTION gridpos(width real, height real,
@@ -513,10 +503,10 @@ $$ LANGUAGE SQL IMMUTABLE;
 
 ---
 
-**4.** Collect extracted features. This single-row table contains all information required to identify the drawn character.
+**4.** Accumulate extracted features. This single-row table contains **all information required to identify the drawn character**.
 
 ```sql
-features(center, start, stop, directions, corners, width, height, aspect) AS (  
+features(directions, start, stop, corners, width, height, aspect, center) AS (
   SELECT (SELECT array_agg(direction ORDER BY pos)
           FROM   cardinal_change),
          (TABLE start_grid),
@@ -530,6 +520,18 @@ features(center, start, stop, directions, corners, width, height, aspect) AS ( 
   FROM   aabb
 ),
 ```
+
+---
+
+```
+┌────────────┬───────┬──────┬─────────┬─────────┬─────────┬────────┬───────────────────┐
+│ directions │ start │ stop │ corners │  width  │ height  │ aspect │      center       │
+├────────────┼───────┼──────┼─────────┼─────────┼─────────┼────────┼───────────────────┤
+│ {▲,▼,◀}    │    15 │   11 │ {1,12}  │ 36.7595 │ 66.1965 │ 1.8008 │ (55.3797,64.0982) │
+└────────────┴───────┴──────┴─────────┴─────────┴─────────┴────────┴───────────────────┘
+```
+
+![original](grid22.png)
 
 ---
 
@@ -549,7 +551,11 @@ A better approach is to do this in *two discrete stages*:
 
 Less flexible than the procedure presented in the original memo, but significantly more *idiomatic* and concise.
 
-^ point out that focus was on feature extraction, not mapping to characters because that's boring
+^ point out: focus was on **feature extraction**, not mapping to characters because that's boring
+
+^ there are **more relational approaches**: **direct** mapping (easily trainable!) or benjamin's approach (_**flattening first lookup table's second column**_, with appropriate query changes)
+
+^ SQL turing-complete => go nuts
 
 ---
 
@@ -596,7 +602,7 @@ INSERT INTO lookup_bestfit VALUES
 
 ---
 
-**3.** Consult *both* lookup tables in order.
+**3.** Tie it all together: Consult *both* lookup tables in order.
 
 ```sql
 character(character) AS (
@@ -613,7 +619,7 @@ character(character) AS (
 
 ---
 
-**3.** Consult *both* lookup tables in order.
+**3.** Tie it all together: Consult *both* lookup tables in order.
 
 ```sql, [.highlight: 4]
 character(character) AS (
@@ -628,9 +634,11 @@ character(character) AS (
 ),
 ```
 
+^ extract first four directions of stroke and perform first lookup
+
 ---
 
-**3.** Consult *both* lookup tables in order.
+**3.** Tie it all together: Consult *both* lookup tables in order.
 
 ```sql, [.highlight: 5]
 character(character) AS (
@@ -645,9 +653,11 @@ character(character) AS (
 ),
 ```
 
+^ based on first lookup result, perform lookup in the second table
+
 ---
 
-**3.** Consult *both* lookup tables in order.
+**3.** Tie it all together: Consult *both* lookup tables in order.
 
 ```sql, [.highlight: 6-9]
 character(character) AS (
@@ -662,9 +672,11 @@ character(character) AS (
 ),
 ```
 
+^ match features
+
 ---
 
-**3.** Consult *both* lookup tables in order.
+**3.** Tie it all together: Consult *both* lookup tables in order.
 
 ```sql, [.highlight: 2]
 character(character) AS (
@@ -679,11 +691,11 @@ character(character) AS (
 ),
 ```
 
-**4.** And we're done!
+^ And we're done! 🎊🎉
 
 ---
 
-^ no single operation that takes the vast majority of time => evenly split
+^ no single operation that takes the vast majority of time => reasonably evenly split
 
 **Performance:** Most algorithms designed in the 60's will run on modern hardware *just fine* – this one is no exception:
 
@@ -694,6 +706,8 @@ The whole chain of queries terminates after **~15 ms**.
 ![right](plan.png)
 
 ---
+
+^ cmd+F1
 
 <br>
 <br>
