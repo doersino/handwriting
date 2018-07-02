@@ -7,7 +7,7 @@
 \begin{document}
 
 \title{Handwriting Recognition with SQL\\\hspace{6.88cm}\footnotesize and a tiny bit of web stuff}
-\author{Noah Doersing}
+\author{Noah Doersing TODO remove topmargin}
 \affiliation{}
 \email{noah.doersing@student.uni-tuebingen.de}
 
@@ -15,6 +15,14 @@
 
 \section*{Abstract}
 This paper provides a sample of a \LaTeX\ document which conforms, somewhat loosely, to the formatting guidelines for ACM SIG Proceedings.\footnote{This is an abstract footnote}
+
+benjamin's idea worse because
+* 4-direction patterns in the first lookup table that map to a *single* character essentially skip the second lookup table (see `INSERT` in line 116 of the setup file). This could be somehow emulated using a query (if `COUNT(candidate\_character)` for the current pattern is 1, skip the feature-matching step), but that adds cruft to the query.
+* Deciding between 7 and 1 requires features F, while deciding between 7 and 3 requires looking at features G != F. Could also be patched over at the query level.
+* More verbose first lookup table, slimmer second lookup table.
+* Second lookup table does not anymore indicate which 4-direction pattern a given feature match belongs to, making debugging/extending harder.
+* Effectively requires ranking results based on closeness of match, e.g. number of features used (or VERY careful design of the second lookup table, which I didn't have time for before my presentation).
+* Conceptually further from original tree structure, which can be a bad or good thing.
 
 \section{Introduction}
 
