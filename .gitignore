@@ -1,0 +1,7 @@
+*.bbl
+*.aux
+*.blg
+*.log
+*.out
+*.synctex.gz
+_minted-paper
