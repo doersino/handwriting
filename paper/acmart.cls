@@ -1905,11 +1905,10 @@ Computing Machinery]
     \@acmNumber, Article \@acmArticle.  Publication date: \@acmPubDate.}%
   \else % Proceedings
     \fancyfoot[C]{\if@ACM@printfolios\footnotesize\thepage\fi}%
-    \fancyhead[LO]{\ACM@linecount\@headfootfont\shorttitle}%
+    \fancyhead[LO]{\@headfootfont Handwriting Recognition with SQL}%
     \fancyhead[RE]{\@headfootfont\@shortauthors}%
-    \fancyhead[LE]{Handwriting Recognition with SQL}%
-    \fancyhead[RO]{\@headfootfont\acmConference@shortname,
-      \acmConference@date, \acmConference@venue}%
+    \fancyhead[LE]{\@headfootfont Handwriting Recognition with SQL}%
+    \fancyhead[RO]{\@headfootfont\@shortauthors}%
   \fi
   \if@ACM@sigchiamode
      \fancyheadoffset[L]{\dimexpr(\marginparsep+\marginparwidth)}%
