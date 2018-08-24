@@ -9,6 +9,9 @@
 \usepackage{subcaption}
 \usepackage{wasysym}
 \usepackage{pgfplots}
+\usepackage{enumitem}
+
+\urlstyle{tt}
 
 \begin{document}
 
@@ -54,7 +57,7 @@ The user operated the GRAIL system using a stylus connected to a tablet as shown
 
 The original \enquote{IBM/360 assembly language program for online graphical-input character recognition using the RAND Tablet} \cite{source} is publicly available, but was not consulted when writing the SQL query – it is too low-level to be of much utility.
 
-\subsection{Web app}
+\subsection{Web App}
 
 Testing the SQL query necessitates a simple simulation of the RAND tablet, which was given along with the assignment in the form of a D3.js-based web app that prints a list of coordinates once the user draws a character.
 
@@ -211,11 +214,11 @@ Groner extracts this feature by comparing positional differences of point pairs 
   \label{tan}
 \end{figure}
 
-In CTE \texttt{cardinal} it is then quantized to determine the cardinal directions, denoted by an \texttt{ENUM} type comprising the Unicode symbols $\blacktriangle\hspace{-0.15em}\blacktriangledown\hspace{-0.41em}\blacktriangleleft\blacktriangleright$. To accomplish this, the \texttt{enum\_range(anyenum)} function is used, which returns all values of the input enum type as an array.\footnote{See \url{https://www.postgresql.org/docs/8.3/static/functions-enum.html}.}
+In CTE \texttt{cardinal} it is then quantized to determine the cardinal directions, denoted by an \texttt{ENUM} type comprising the Unicode symbols $\blacktriangle\hspace{-0.15em}\blacktriangledown\hspace{-0.45em}\blacktriangleleft\blacktriangleright$. To accomplish this, the \texttt{enum\_range(anyenum)} function is used, which returns all values of the input enum type as an array.\footnote{See \url{https://www.postgresql.org/docs/8.3/static/functions-enum.html}.}
 
 \enquote{If the same direction occurs twice in succession, and is not the same as the last direction [...], then it is added to the [result], otherwise it is discarded.} \cite{groner} Thus the CTE \texttt{cardinal\_change} takes care of discarding sequential duplicates.
 
-TODO because window functions cannot be used in where, an awkward subquery todo "They are forbidden elsewhere, such as in \texttt{GROUP BY}, \texttt{HAVING} and \texttt{WHERE} clauses. This is because they logically execute after the processing of those clauses." \footnote{See \url{https://www.postgresql.org/docs/10/static/tutorial-window.html}.}
+TODO because window functions cannot be used in where, an awkward subquery... "They are forbidden elsewhere, such as in \texttt{GROUP BY}, \texttt{HAVING} and \texttt{WHERE} clauses. This is because they logically execute after the processing of those clauses." \footnote{See \url{https://www.postgresql.org/docs/10/static/tutorial-window.html}.}
 
 \begin{figure}[pb]
   \centering
@@ -236,7 +239,7 @@ Cardinal directions are sufficient to discern between many characters, but in so
 
 Instead of 16-directions (\textit{i.e.}, the division of 360° into 16 slices), the CTE \texttt{corner} of the SQL implementation uses absolute angles, making sure that the two line segments directly before a corner point within $\frac{360°}{16} = 22.5°$ of each other, the two next line segments also point within $22.5°$ of each other and the angle at the corner point is $>90°$. The window function \texttt{lag()} is used to access previous and next points – rather, the angles the associated line segments point towards – and a custom \texttt{angdiff()} function computes the delat $$\arctan\left(\frac{\sin(\alpha-\beta)}{\cos(\alpha-\beta)}\right)$$ between a pair of angles.\footnote{See \url{https://stackoverflow.com/a/2007279}. The formula $180 - \left|\left|\alpha - \beta\right| - 180\right|$ is equivalent and cheaper to compute, but the one given in the text elegantly combines sin, cos and (arc)tan.} The output of the CTE is a table of corner positions.
 
-\subsection{Additional features}
+\subsection{Additional Features}
 
 In addition to cardinal directions and corners, Groner's algorithm determines a number of additional features: \enquote{the symbol's height and width [...], its aspect ratio [...], and its center relative to the tablet origin.} \cite{groner} They are of limited use to the simplified single-stroke alphanumeric characters supported by the SQL implementation; \textit{e.g.}, height and width aid in discerning parentheses from commata.
 
@@ -250,42 +253,48 @@ Finally, the CTE \texttt{features} combines all extracted features into a single
 
 \subsection{Mapping Features to Characters}
 
-The 
+Once the pen stroke has been sufficiently analyzed, Groner's algorithm \enquote{[looks] up the first four direction segments} in a table. For the letter B as shown in figure \ref{grid}, this table entry is $\blacktriangle\hspace{-0.26em}\blacktriangleright\hspace{-0.40em}\blacktriangledown\hspace{-0.40em}\blacktriangleleft$, which corresponds to 2, 3, 8, B, D, P, or R. \enquote{Further tests, based on this particular set of possibilities, result in a single identification.} \cite{groner}
 
-TODO decision tree, not relational, most challenging portion of the work (rest smooth sailing)
+In the original implementation, these tests take the form of a custom decision tree for each entry of the initial lookup table. A direct transliteration to SQL is difficult, requiring a rat's tail of nested \texttt{CASE} expressions or a similarly convoluted approach. However, it turned out that the simplified alphabet used in the context of this work suggests a more idiomatic two-stage approach that, while less flexible, delivers acceptable results:
 
-\textbf{Alternate approaches.} TODO benjamin's idea worse because
-* 4-direction patterns in the first lookup table that map to a *single* character essentially skip the second lookup table (see `INSERT` in line 116 of the setup file). This could be somehow emulated using a query (if `COUNT(candidate\_character)` for the current pattern is 1, skip the feature-matching step), but that adds cruft to the query.
-* Deciding between 7 and 1 requires features F, while deciding between 7 and 3 requires looking at features G != F. Could also be patched over at the query level.
-* More verbose first lookup table, slimmer second lookup table.
-* Second lookup table does not anymore indicate which 4-direction pattern a given feature match belongs to, making debugging/extending harder.
-* Effectively requires ranking results based on closeness of match, e.g. number of features used (or VERY careful design of the second lookup table, which I didn't have time for before my presentation).
-* Conceptually further from original tree structure, which can be a bad or good thing.
+\begin{enumerate}[nolistsep]
+    \item An array comprising the first four cardinal directions is mapped to an array of possible characters using lookup table $T_1$.
+    \item Another lookup table $T_2$ is consulted that maps the potential characters and specific feature values – some of which can be marked as \enquote{don't care} by setting them to \texttt{NULL} (hence the \texttt{IS NULL} checks in lines 86 through 89) – to a concrete result character. For characters which are wholly determined by the first lookup, all features are set to \texttt{NULL}.
+\end{enumerate}
+
+Finding a satisfactory representation for this decision mechanism was one of the trickier aspects of this work: A reasonable balance between flexibility and maintainability needed to be struck while ideally still resembling Groner's ideas.
+
+\textbf{Alternate approach.} The two-stage approach implemented in CTE \texttt{character} is not ideal: The array-to-array mapping of $T_1$ does not conform to 1NF. An alternate representation\footnote{Its implementation can be found in the \texttt{morerelational} branch of the Git repository.} was explored where the rows of $T_1$ were \enquote{expanded} to map to single characters from direction arrays (which can occur multiple times in the table) and $T_2$ is modified accordingly by chopping off the array column. This, however, complicates CTE \texttt{character} and complicates the ability to discern some pairs of characters: Deciding whether a stroke resembles 7 or 1 requires different features than the choice between 7 and 3, say. This difficulty could be patched over on the query level, however.
+
+%TODO benjamin's idea worse because
+%* 4-direction patterns in the first lookup table that map to a *single* character essentially skip the second lookup table (see `INSERT` in line 116 of the setup file). This could be somehow emulated using a query (if `COUNT(candidate\_character)` for the current pattern is 1, skip the feature-matching step), but that adds cruft to the query.
+%* Deciding between 7 and 1 requires features F, while deciding between 7 and 3 requires looking at features G != F. Could also be patched over at the query level.
+%* More verbose first lookup table, slimmer second lookup table.
+%* Second lookup table does not anymore indicate which 4-direction pattern a given feature match belongs to, making debugging/extending harder.
+%* Effectively requires ranking results based on closeness of match, e.g. number of features used (or VERY careful design of the second lookup table, which I didn't have time for before my presentation).
+%* Conceptually further from original tree structure, which can be a bad or good thing.
 
 \section{Evaluation}
 
-Basing his analysis on the original IBM/360 assembly program running on a Model 40, Groner writes that the preprocessing and feature extraction stage \enquote{takes up about 40 percent of the available computing time in the limiting case [...]. Smoothing and thinning requires about 20 percent of this analysis time, [drawing each incoming segment to the screen] 30 percent, and corner detection 16 percent. The remainder of the analysis time is for computing quantized directions, updating x and y extremes, and bookkeeping.} He goes on to outline potential improvements that could cut the computing time down to \enquote{only about 15 percent} \cite{groner}. TODO nothing about decision tree performance, probably quite fast
+Basing his analysis on the original IBM/360 assembly program running on a Model 40, Groner writes that the preprocessing and feature extraction stage \enquote{takes up about 40 percent of the available computing time in the limiting case [...]. Smoothing and thinning requires about 20 percent of this analysis time, [drawing each incoming segment to the screen] 30 percent, and corner detection 16 percent. The remainder of the analysis time is for computing quantized directions, updating x and y extremes, and bookkeeping.} He goes on to outline potential improvements that could cut the computing time down to \enquote{only about 15 percent} \cite{groner} but does not mention the cost of walking the decision tree – supposedly it's minimal. Groner also presents the results of user testing.
 
-TODO groner's user tests
-
-Profiling the web version and SQL query is a bit more difficult TODO EXPLAIN analyze, compare to groner's breakdown, should roughly correspond
+The SQL implementation takes $10-15$ ms to process a typical pen stroke generated by the web app. Taking a look at the \texttt{EXPLAIN ANALYZE} output of the query shown in figure \ref{code}, none of the CTEs take an unexpectedly high amount of \texttt{actual time} – the computing effort seems to be relatively evenly spread, without any major departures from Groner's observations.
 
 \section{Related \& future work}
 
-\textbf{Related work.} TODO that moto? input thingy
+\textbf{Related work.} GRAIL is a successor to Sketchpad, one of the first systems that \enquote{[make] it possible for a man and a computer to converse rapidly through the medium of line drawings} but relied on a keyboard for text input. \cite{sketchpad}
 
-TODO dynamic time warping, see denis and http://www.hcii-lab.net/lianwen/Papers/Conference/%5BICDAR%202005%5D%20Hybrid%20recognition%20for%20one%20stroke%20style%20cursive%20handwriting%20characters.pdf
+Because Chinese and Korean characters are drawn based on a rigidly defined stroke order, algorithms like the one presented here are well-suited for these writing systems. Indeed, Groner and Heafner worked on \enquote{classification of handprinted Chinese characters as a translation aid} \cite{chinese} in the same timeframe.
 
-TODO get the apple newton into this
+Palm later developed Graffiti, a text input system based on single-stroke characters and commands. Among other devices, it was deployed on Apple's Newton and Windows Mobile.\footnote{See \url{https://en.wikipedia.org/wiki/Graffiti_(Palm_OS)}.} The SQL implementation could conceivably be modified to recognize Graffiti's gestures by rewriting the lookup tables.
 
-\textbf{Future work.} TODO improvements: multiple strokes, changes to make thing more suited to modern stuff (no smoothing/thinning due to higher (scan) resoltion of current tech), better representation of decision tree (perhaps more elegant on a graph db, but really no expert, heh)
+Dynamic Time Warping may be used for character recognition, given an effective way of converting stroke information to time series.\footnote{Ask the guy in B312 about this.}
 
-TODO some discussion on this approach, with multiple strokes support, being particularly suited for CJK input due to rigidly defined stroke order even though characters can look a bit complex, and indeed this has been done before https://www.rand.org/pubs/papers/P3568.html
+\textbf{Future work.} Recognizing characters composed of multiple strokes would bring the SQL implementation to basic feature parity with the original system.
 
+Groner's decision tree could be represented more effectively – building the character recognition scheme on top of a graph database might lend itself to an implementation that's more true to the original.
 
-\section{Conclusion}
-
-TODO whatever, maybe drop
+Because modern tablets feature resolutions significantly higher than the RAND tablet, the smoothing step is less crucial now than it was when the RAND tablet was used. Similarly, the time savings brought about by thinning are barely worth the computing effort on modern, faster systems.
 
 \bibliographystyle{abbrv}
 \bibliography{paper.bib}
