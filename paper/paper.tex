@@ -2,9 +2,11 @@
 \setcopyright{none}
 \settopmatter{printfolios=true}
 
-\usepackage{csquotes}
 \usepackage{fontspec}
 \setmonofont[Scale=0.88]{Iosevka}
+\newfontfamily\emoji{DejaVu Sans}
+
+\usepackage{csquotes}
 \usepackage{minted}
 \usepackage{subcaption}
 \usepackage{wasysym}
@@ -15,7 +17,7 @@
 
 \begin{document}
 
-\title{\vspace{-0.4em}{\hspace{-6cm}\footnotesize \textsc{SQL is a Programming Language}}\\\vspace{-0.3em}Handwriting Recognition with SQL\\\vspace{-0.1em}\hspace{6.88cm}\footnotesize and a tiny bit of web stuff\vspace{-1em}}
+\title{\vspace{-0.5em}{\hspace{-5.5cm}\small \textsc{SQL is a Programming Language}}\\\vspace{-0.3em}Handwriting Recognition with SQL\\\vspace{-0.1em}\hspace{6.88cm}\footnotesize and a tiny bit of web stuff\vspace{-1em}}
 \author{Noah Doersing}
 \affiliation{}
 \email{noah.doersing@student.uni-tuebingen.de}
@@ -27,11 +29,11 @@ A basic handwriting recognition algorithm conceived in the 60's has been impleme
 
 \section{Introduction}
 
-Throughout the history of computing, human-computer interaction has been an ever-evolving avenue for research. The results of computations, in the early days indicated by blinking light bulbs, have more recently been presented on screens of ever-increasing resolution, with different output formats such as voice being explored continuously. On the input side of the equation, punch cards have given way to command prompts fed by keyboards, which in turn have largely been superseded touch- or voice-based user interfaces.
+Throughout the history of computing, human-computer interaction has been an ever-evolving avenue for research. The results of computations, in the early days indicated by blinking light bulbs, have more recently been presented on screens of ever-increasing resolution, with different output formats being explored continuously. On the input side of the equation, punch cards have given way to command prompts fed by keyboards, which in turn have largely been superseded by touch- or voice-based user interfaces.
 
-Both need to operate in lockstep: A fine meshing of input and output methods is required if an interface is to feel natural to users. Today's touch-based input devices, when compared to now-old-fashioned mouse input, exhibit clear usability upsides. Whenever the user wishes to manipulate a thing, she can simply touch it, instead of negotiating a mouse pointer towards it or entering keyboard shortcuts.
+Both need to operate in lockstep: The meshing of input and output methods must be carefully considered if an interface is to feel natural to its users. Today's touch-based input devices, when compared to now-old-fashioned mouse input, exhibit clear usability upsides – when the user wishes to manipulate a thing, she can simply touch it, instead of negotiating a mouse pointer towards it or entering keyboard shortcuts.
 
-Current as this may be, it is not fundamentally new. More than 50 years ago, researchers at RAND Corporation came up with a pen-based input paradigm intended, according to GUI pioneer Alan Kay, \enquote{for economists and other non-computer specialists [...] who said \enquote{Hey, none of us can type, can't you do something about that?}} \cite{kay} As part of this system, a basic handwriting recognition algorithm was developed. \cite{groner,schaedler}
+\textit{Current} as this may be, it is not fundamentally \textit{new}. More than 50 years ago, researchers at RAND Corporation came up with a pen-based input paradigm intended, according to GUI pioneer Alan Kay, \enquote{for economists and other non-computer specialists [...] who said \enquote{Hey, none of us can type, can't you do something about that?}} \cite{kay} As part of this system, a basic handwriting recognition algorithm was developed. \cite{groner,schaedler}
 
 \textbf{Outline.} Before delving into its details – and how a simplified variant of it, only able to recognize a single-stroke letter at a time (see figure \ref{chars}), has been implemented as a SQL query – we will take a look at the RAND tablet and the GRAIL system it powers. After discussing the implementation, we will consider its performance and some related ideas.
 
@@ -51,7 +53,9 @@ Current as this may be, it is not fundamentally new. More than 50 years ago, res
   \label{grailconsole}
 \end{figure}
 
-Developed by RAND in the 1960s, the Graphic Input Language (GRAIL) was a flowchart-based programming system. \cite{grail} As described by its creators, it enables a user to \enquote{draw flowchart symbols, edit and rearrange them on the display surface, and connect them appropriately to form a meaningful program. [The user can] execute the program while controlling its execution rate and the amount and content of information presented to him. The system interprets, in real-time, the [user's] hand-drawn figures, characters, and other [...] gestures to provide germane responses on the display surface.} \cite{grailang} Alan Kay, in a talk where he demonstrates GRAIL, summarizes it as \enquote{the world's first modeless system} and notes that it is \enquote{where Macintosh window control came from} \cite{kay}.
+Developed at RAND in the 1960s, the Graphic Input Language (GRAIL) was a flowchart-based programming system \cite{kay,grailang,grail}. As described by its creators, it enables a user to \enquote{draw flowchart symbols, edit and rearrange them on the display surface, and connect them appropriately to form a meaningful program. [The user can] execute the program while controlling its execution rate and the amount and content of information presented to him. The system interprets, in real-time, the [user's] hand-drawn figures, characters, and other [...] gestures to provide germane responses on the display surface.} \cite{grailang} Alan Kay, in a talk where he demonstrates GRAIL, summarizes it as \enquote{the world's first modeless system}
+%and notes that it is \enquote{where Macintosh window control came from}
+\cite{kay}.
 
 The user operated the GRAIL system using a stylus connected to a tablet as shown in figure \ref{grailconsole}. Its \enquote{writing surface is a 10"x10" area with a resolution of 100 lines per inch in both x and y [...], allowing the user to \enquote{write} in a natural manner. [...] To maintain \enquote{naturalness} of the pen device, a pressure-sensitive switch in the tip of the stylus indicates \enquote{stroke} [...] to the computer} \cite{tablet}.\footnote{The authors of this memo describe the function of the tablet in great detail. Another memo takes a deep dive into the innards of GRAIL. \cite{details}}
 
@@ -165,7 +169,7 @@ TABLE character;
 
 \section{Implementation}
 
-The web app outputs a JSON value of the form \texttt{[\{"x": 37, "y": 39\}, \{"x": 38, "y": 43, ...\}]}. It is passed to the Postgres\footnote{Postgres 9.4 or newer is required.} command-line client \texttt{psql} and converted to a table with an sequantial identifier column in CTE \texttt{tablet} (see figure \ref{code}).
+The web app outputs a JSON value of the form \texttt{[\{"x": 37, "y": 39\}, \{"x": 38, "y": 43, ...\}]}. It is passed to the Postgres\footnote{Postgres 9.4 or newer is required.} command-line client \texttt{psql} and converted to a table with a sequential identifier column in CTE \texttt{tablet} (see figure \ref{code}).
 
 \subsection{Smoothing \& Thinning}
 
@@ -176,19 +180,19 @@ The web app outputs a JSON value of the form \texttt{[\{"x": 37, "y": 39\}, \{"x
   \label{smoothingthinning}
 \end{figure}
 
-The RAND tablet provides a stream (\enquote{the recognition scheme is notified of [the pen] position every 4 msec} \cite{groner}) of pen positions as integer $x,y$ coordinate pairs.
+The RAND tablet provides a stream (\enquote{the recognition scheme is notified of [the pen] position every 4 msec} \cite{groner}) of pen positions as integer-valued $x,y$ coordinate pairs.
 
-As a preprocessing step, this digital representation pen stroke is smoothed to counteract quantization effects (\enquote{noise due to the discreteness of the pen location as measures by the tablet} \cite{groner}, which can negatively affect later steps of the algorithm) as shown in figure \ref{smoothingthinning}. Smoothing is performed by computing a weighted average of the most recently smoothed point (weight ~75\%; the first point of the stroke is assumed to be smooth already) and the next incoming point (~25\%). In SQL, this is accomplished by the recursive CTE \texttt{smooth} where the weight is stored in the \texttt{psql} variable \texttt{smoothingfactor}.
+As a preprocessing step, this digital representation of the pen stroke is smoothed to counteract quantization effects (\enquote{noise due to the discreteness of the pen location as measured by the tablet} \cite{groner}, which can negatively affect the latter steps of the algorithm) as shown in figure \ref{smoothingthinning}. Smoothing is performed by computing a weighted average of the most recently smoothed point (weight ~75\%; the first point of the stroke is accepted as is) and the next incoming point (~25\%). In SQL, this is accomplished by the recursive CTE \texttt{smooth} where the weight is read from the \texttt{psql} variable \texttt{smoothingfactor}.
 
-The second stage of preprocessing drops points that are in close proximity to a previous point and thus contribute little or no additional information. This mainly serves to ease the computing effort required during the next stages. Groner uses a set of inequalities that compare $x$ and $y$ positions, effectively superimposing a square over each point and removing any other points that fall into this square. This is less \enquote{correct} than pruning based on the Euclidean distance as implemented in the SQL query (line 20), but computationally more efficient. The seemingly superfluous wrapping for the recursive part of the \texttt{thin} CTE in a \texttt{SELECT * FROM (...) AS \_} is required because Postgres does not permit \texttt{ORDER BY} directly in a recursive query.
+The second stage of preprocessing, thinning, drops points that are in close proximity to the most recently accepted point and thus contribute little or no additional information. This mainly serves to ease the computing effort required during the next steps. Groner uses a set of inequalities that compare $x$ and $y$ positions, effectively superimposing a square over each thinned point (again, the first point is accepted as is) and removing any other points that fall into this square. This is less \enquote{correct} than pruning based on the Euclidean distance as implemented in the SQL query (line 20), but computationally more efficient. The seemingly superfluous wrapping of the recursive part of the \texttt{thin} CTE in a \texttt{SELECT * FROM (...) AS \_} is required because Postgres does not permit \texttt{ORDER BY} directly in a recursive query.
 
-The degree to which these steps affect the raw data is controlled using the \texttt{psql} variables \texttt{smoothingfactor} and \texttt{thinningsize}. Choosing sensible values is important: As \texttt{smoothingfactor} approaches 1, corners disappear and the end of the stroke is pulled closer to the start. This effect is visible in figure \ref{smoothingthinning} where {\color[HTML]{BE7777}\huge\textbullet}{\color[HTML]{52B1C6}\huge\textbullet} extend further along the $x$ axis than {\color[HTML]{777777}\huge\textbullet}{\color[HTML]{74C974}\huge\textbullet}. Similarly, a large \texttt{thinningsize} can obscure corners or bends in the stroke.
+The degree to which these steps affect the raw data is controlled using the \texttt{psql} variables \texttt{smoothingfactor} and \texttt{thinningsize}. Choosing sensible values is crucial: As \texttt{smoothingfactor} approaches 1, corners disappear and the end of the stroke is pulled closer to the start. This effect is visible in figure \ref{smoothingthinning} where {\color[HTML]{BE7777}\huge\textbullet}{\color[HTML]{52B1C6}\huge\textbullet} extend further along the $x$ axis than {\color[HTML]{777777}\huge\textbullet}{\color[HTML]{74C974}\huge\textbullet}. Similarly, a large \texttt{thinningsize} can obscure corners or bends, which character recognition hinges on.
 
 \subsection{Curvature}
 
-\enquote{Curvature is the most obvious characteristic which is independent of position and size, and yet which describes the [stroke]'s shape. [...] Four directions, used in conjunction with other features, provide sufficient description for recognition, yet result in [less effort] than do [more] directions.} \cite{groner} Only changes of these cardinal directions the pen stroke moves toward as each character is drawn are kept.
+\enquote{Curvature is the most obvious characteristic which is independent of position and size, and yet which describes the [stroke]'s shape. [...] Four directions, used in conjunction with other features, provide sufficient description for recognition, yet result in [less effort] than do [more] directions.} \cite{groner} The algorithm only keeps \textit{changes} of these cardinal directions the pen stroke moves toward as each character is drawn.
 
-Groner extracts this feature by comparing positional differences of point pairs using a set of inequalities. Because more fine-grained curvature information is helpful in detecting corners later on, the SQL implementation (see CTE \texttt{curve}) instead computes the precise angle between the line connecting each pair of points and the $x$ axis as shown in figure \ref{tan}.
+Groner extracts this feature by comparing positional differences of point pairs using a set of inequalities. Because more fine-grained curvature information is helpful in detecting corners later on, the SQL implementation (see CTE \texttt{curve}) instead computes the precise angle between the imaginary line segment connecting each pair of points and the $x$ axis as shown in figure \ref{tan}.
 
 \begin{figure}[htpb]
   \centering
@@ -214,15 +218,13 @@ Groner extracts this feature by comparing positional differences of point pairs 
   \label{tan}
 \end{figure}
 
-In CTE \texttt{cardinal} it is then quantized to determine the cardinal directions, denoted by an \texttt{ENUM} type comprising the Unicode symbols $\blacktriangle\hspace{-0.15em}\blacktriangledown\hspace{-0.45em}\blacktriangleleft\blacktriangleright$. To accomplish this, the \texttt{enum\_range(anyenum)} function is used, which returns all values of the input enum type as an array.\footnote{See \url{https://www.postgresql.org/docs/8.3/static/functions-enum.html}.}
+In CTE \texttt{cardinal} $\alpha$ is then quantized to determine the cardinal directions, denoted by an \texttt{ENUM} type containing the Unicode symbols $\blacktriangle\hspace{-0.15em}\blacktriangledown\hspace{-0.45em}\blacktriangleleft\blacktriangleright$. To accomplish this, the \texttt{enum\_range(anyenum)} function, which returns all values of the input enum type as an array, is used.\footnote{See \url{https://www.postgresql.org/docs/8.3/static/functions-enum.html}.}
 
-\enquote{If the same direction occurs twice in succession, and is not the same as the last direction [...], then it is added to the [result], otherwise it is discarded.} \cite{groner} Thus the CTE \texttt{cardinal\_change} takes care of discarding sequential duplicates.
-
-TODO because window functions cannot be used in where, an awkward subquery... "They are forbidden elsewhere, such as in \texttt{GROUP BY}, \texttt{HAVING} and \texttt{WHERE} clauses. This is because they logically execute after the processing of those clauses." \footnote{See \url{https://www.postgresql.org/docs/10/static/tutorial-window.html}.}
+As mentioned above, \enquote{[i]f the same direction occurs twice in succession, and is not the same as the last direction [...], then it is added to the [result], otherwise it is discarded} \cite{groner}, which the CTE \texttt{cardinal\_change} takes care of. Because window functions cannot\footnote{\enquote{This is because they logically execute after the processing of [this clause]}, see \url{https://www.postgresql.org/docs/10/static/tutorial-window.html}.} be used in \texttt{WHERE} predicates, an somewhat awkward subquery builds a boolean column, based on which the rows are then filtered (lines 39 to 45).
 
 \begin{figure}[pb]
   \centering
-  \subcaptionbox{Corners help discern between similar charachters. They are determined based on the angles between four to five successive line segments.\label{corners}}{
+  \subcaptionbox{Corners help discern between similar characters. They are determined based on the angles between four to five successive line segments.\label{corners}}{
     \includegraphics[height=3.9cm]{corners}
   }
   \hspace{0.5cm}
@@ -235,36 +237,36 @@ TODO because window functions cannot be used in where, an awkward subquery... "T
 
 \subsection{Corners}
 
-Cardinal directions are sufficient to discern between many characters, but in some cases – see figure \ref{corners} – other features such as the presence or absence of corners are required. \enquote{A corner is detected whenever the pen moves in the same ($\pm 1$) 16-direction for at least two segments [{\color[HTML]{21C800}$\blacktriangleright\blacktriangleright$}], changes direction by at least 90°, and then proceeds along the new direction ($\pm 1$) for at least two segments [{\color[HTML]{008AFF}$\blacktriangleright\blacktriangleright$}]. The change in direction must take place either immediately or through a one-segment turn [{\color[HTML]{FFC000}$\blacktriangleright$}].} \cite{groner} (The triangles correspond to the lower half of figure \ref{corners}.)
+Cardinal directions are sufficient to discern between many characters, but in some cases, \textit{e.g.}, G and 6 as demonstrated in figure \ref{corners}, other features such as the presence or absence of corners are required. \enquote{A corner is detected whenever the pen moves in the same ($\pm 1$) 16-direction for at least two segments [{\color[HTML]{21C800}$\blacktriangleright\blacktriangleright$}], changes direction by at least 90°, and then proceeds along the new direction ($\pm 1$) for at least two segments [{\color[HTML]{008AFF}$\blacktriangleright\blacktriangleright$}]. The change in direction must take place either immediately or through a one-segment turn [{\color[HTML]{FFC000}$\blacktriangleright$}].} \cite{groner} (The triangles correspond to the lower half of figure \ref{corners}.)
 
-Instead of 16-directions (\textit{i.e.}, the division of 360° into 16 slices), the CTE \texttt{corner} of the SQL implementation uses absolute angles, making sure that the two line segments directly before a corner point within $\frac{360°}{16} = 22.5°$ of each other, the two next line segments also point within $22.5°$ of each other and the angle at the corner point is $>90°$. The window function \texttt{lag()} is used to access previous and next points – rather, the angles the associated line segments point towards – and a custom \texttt{angdiff()} function computes the delat $$\arctan\left(\frac{\sin(\alpha-\beta)}{\cos(\alpha-\beta)}\right)$$ between a pair of angles.\footnote{See \url{https://stackoverflow.com/a/2007279}. The formula $180 - \left|\left|\alpha - \beta\right| - 180\right|$ is equivalent and cheaper to compute, but the one given in the text elegantly combines sin, cos and (arc)tan.} The output of the CTE is a table of corner positions.
+Instead of 16-directions (\textit{i.e.}, the division of 360° into 16 slices), the CTE \texttt{corner} of the SQL implementation uses absolute angles, making sure that the angles corresponding to the two line segments directly before a corner are within $\frac{360°}{16} = 22.5°$ of each other, the angle at the corner point is $>90°$ and the two subsequent angles again differ by no more than $22.5°$. The window function \texttt{lag()} is used to access these previous and next angles and a custom \texttt{angdiff()} function computes the delta $$\arctan\left(\frac{\sin(\alpha-\beta)}{\cos(\alpha-\beta)}\right)$$ between each pair of angles.\footnote{See \url{https://stackoverflow.com/a/2007279}. The formula $180 - \left|\left|\alpha - \beta\right| - 180\right|$ is equivalent and cheaper to compute, but the one given in the text elegantly combines sin, cos and (arc)tan.} The output of the CTE is a table of corner positions.
 
 \subsection{Additional Features}
 
-In addition to cardinal directions and corners, Groner's algorithm determines a number of additional features: \enquote{the symbol's height and width [...], its aspect ratio [...], and its center relative to the tablet origin.} \cite{groner} They are of limited use to the simplified single-stroke alphanumeric characters supported by the SQL implementation; \textit{e.g.}, height and width aid in discerning parentheses from commata.
+In addition to cardinal directions and corners, Groner's algorithm determines a number of additional features: \enquote{the symbol's height and width [...], its aspect ratio [...], and its center relative to the tablet origin.} \cite{groner} They are of limited use to the simplified single-stroke alphanumeric characters recognized by the SQL implementation; \textit{e.g.}, height and width help discern parentheses from commata, neither of which are supported.
 
-Nevertheless, they are extracted in the CTE \texttt{aabb}, which trivially derives an axis-aligned bounding box around the character drawn by the user and returns two $x,y$ pairs defining it, along with width, height, center and aspect ratio.
+Nevertheless, they are extracted in the CTE \texttt{aabb}, which trivially derives an axis-aligned bounding box around the character drawn by the user and returns two $x,y$ coordinates defining it, along with width, height, center and aspect ratio.
 
 \textbf{Grid.} The algorithm then \enquote{divides the rectangular area defined by the symbol into a 4 x 4 grid. The starting (pen-down) and ending (pen-up) points, as well as the corner locations, are then each encoded as lying in one of these 16 areas, thereby locating them relative to the symbol.} \cite{groner} Figure \ref{grid} shows an example.
 
-The SQL implementation uses a custom \texttt{gridpos(width, height, xmin, ymin, x, y)} function which \enquote{desugars} to an arithmetic expression mapping \texttt{x} and \texttt{y}, given an AABB defined by minimum x, y, \texttt{width} and \texttt{height} to grid positions.\footnote{Global state would be convenient here to avoid passing the unchanging AABB on each call, but creating an extra temporary table for storing it seems like overkill.}
+The SQL implementation uses a custom \texttt{gridpos(width, height, xmin, ymin, x, y)} function which \enquote{desugars} to an arithmetic expression mapping \texttt{x} and \texttt{y}, given an AABB defined by minimum x, y, width and height to one of the 16 grid positions.\footnote{Global state would be convenient here to avoid passing the unchanging AABB on each call, but creating an extra temporary table for storing it seems like overkill.}
 
-Finally, the CTE \texttt{features} combines all extracted features into a single-row table.
+Finally, the CTE \texttt{features} combines all extracted features into a handy single-row table.
 
 \subsection{Mapping Features to Characters}
 
 Once the pen stroke has been sufficiently analyzed, Groner's algorithm \enquote{[looks] up the first four direction segments} in a table. For the letter B as shown in figure \ref{grid}, this table entry is $\blacktriangle\hspace{-0.26em}\blacktriangleright\hspace{-0.40em}\blacktriangledown\hspace{-0.40em}\blacktriangleleft$, which corresponds to 2, 3, 8, B, D, P, or R. \enquote{Further tests, based on this particular set of possibilities, result in a single identification.} \cite{groner}
 
-In the original implementation, these tests take the form of a custom decision tree for each entry of the initial lookup table. A direct transliteration to SQL is difficult, requiring a rat's tail of nested \texttt{CASE} expressions or a similarly convoluted approach. However, it turned out that the simplified alphabet used in the context of this work suggests a more idiomatic two-stage approach that, while less flexible, delivers acceptable results:
+In the original implementation, these tests take the form of a custom decision tree for each entry of the initial lookup table. A direct transliteration to SQL is difficult, requiring a rat's tail of nested \texttt{CASE} expressions or a similarly convoluted approach. However, the simplified alphabet used in the context of this work suggested a more idiomatic two-stage approach that, while less flexible, delivers acceptable results:
 
 \begin{enumerate}[nolistsep]
     \item An array comprising the first four cardinal directions is mapped to an array of possible characters using lookup table $T_1$.
-    \item Another lookup table $T_2$ is consulted that maps the potential characters and specific feature values – some of which can be marked as \enquote{don't care} by setting them to \texttt{NULL} (hence the \texttt{IS NULL} checks in lines 86 through 89) – to a concrete result character. For characters which are wholly determined by the first lookup, all features are set to \texttt{NULL}.
+    \item Another lookup table $T_2$ is consulted, mapping the potential characters and specific feature values – some of which can be marked as \enquote{don't care} by setting them to \texttt{NULL}, hence the \texttt{IS NULL} checks in lines 86 through 89 – to a concrete result character. For characters which are wholly determined by the first lookup, all features are set to \texttt{NULL}.
 \end{enumerate}
 
 Finding a satisfactory representation for this decision mechanism was one of the trickier aspects of this work: A reasonable balance between flexibility and maintainability needed to be struck while ideally still resembling Groner's ideas.
 
-\textbf{Alternate approach.} The two-stage approach implemented in CTE \texttt{character} is not ideal: The array-to-array mapping of $T_1$ does not conform to 1NF. An alternate representation\footnote{Its implementation can be found in the \texttt{morerelational} branch of the Git repository.} was explored where the rows of $T_1$ were \enquote{expanded} to map to single characters from direction arrays (which can occur multiple times in the table) and $T_2$ is modified accordingly by chopping off the array column. This, however, complicates CTE \texttt{character} and complicates the ability to discern some pairs of characters: Deciding whether a stroke resembles 7 or 1 requires different features than the choice between 7 and 3, say. This difficulty could be patched over on the query level, however.
+\textbf{Alternate approach.} The two-stage approach implemented in CTE \texttt{character} is not ideal: The array-to-array mapping of $T_1$ does not conform to 1NF. An alternate representation\footnote{Its implementation can be found in the \texttt{morerelational} branch of the Git repository.} was explored where the rows of $T_1$ were \enquote{expanded} to map to single characters from direction arrays (which can now occur multiple times in the table) and $T_2$ is modified accordingly by chopping off the array column. This, however, complicates the CTE \texttt{character} and complicates future expansion \textit{and} discerning some pairs of characters: Deciding whether a stroke resembles 7 or 1 requires different features than the choice between 7 and 3, say. This difficulty, however, could be patched over on the query level.
 
 %TODO benjamin's idea worse because
 %* 4-direction patterns in the first lookup table that map to a *single* character essentially skip the second lookup table (see `INSERT` in line 116 of the setup file). This could be somehow emulated using a query (if `COUNT(candidate\_character)` for the current pattern is 1, skip the feature-matching step), but that adds cruft to the query.
@@ -278,23 +280,25 @@ Finding a satisfactory representation for this decision mechanism was one of the
 
 Basing his analysis on the original IBM/360 assembly program running on a Model 40, Groner writes that the preprocessing and feature extraction stage \enquote{takes up about 40 percent of the available computing time in the limiting case [...]. Smoothing and thinning requires about 20 percent of this analysis time, [drawing each incoming segment to the screen] 30 percent, and corner detection 16 percent. The remainder of the analysis time is for computing quantized directions, updating x and y extremes, and bookkeeping.} He goes on to outline potential improvements that could cut the computing time down to \enquote{only about 15 percent} \cite{groner} but does not mention the cost of walking the decision tree – supposedly it's minimal. Groner also presents the results of user testing.
 
-The SQL implementation takes $10-15$ ms to process a typical pen stroke generated by the web app. Taking a look at the \texttt{EXPLAIN ANALYZE} output of the query shown in figure \ref{code}, none of the CTEs take an unexpectedly high amount of \texttt{actual time} – the computing effort seems to be relatively evenly spread, without any major departures from Groner's observations.
+The SQL implementation takes $10-15$ ms to process a typical pen stroke generated by the web app. Taking a look at the output of \texttt{EXPLAIN ANALYZE}, none of the CTEs take an unexpectedly high amount of \texttt{actual time}. Thus, the computing effort seems to be relatively evenly spread, without any major departures from Groner's observations.
 
 \section{Related \& future work}
 
 \textbf{Related work.} GRAIL is a successor to Sketchpad, one of the first systems that \enquote{[make] it possible for a man and a computer to converse rapidly through the medium of line drawings} but relied on a keyboard for text input. \cite{sketchpad}
 
-Because Chinese and Korean characters are drawn based on a rigidly defined stroke order, algorithms like the one presented here are well-suited for these writing systems. Indeed, Groner and Heafner worked on \enquote{classification of handprinted Chinese characters as a translation aid} \cite{chinese} in the same timeframe.
+Because Chinese and Korean characters are drawn based on a rigidly defined stroke order, algorithms like the one presented are well-suited for these writing systems. Indeed, Groner and Heafner worked on \enquote{classification of handprinted Chinese characters as a translation aid} \cite{chinese} in the same timeframe.
 
-Palm later developed Graffiti, a text input system based on single-stroke characters and commands. Among other devices, it was deployed on Apple's Newton and Windows Mobile.\footnote{See \url{https://en.wikipedia.org/wiki/Graffiti_(Palm_OS)}.} The SQL implementation could conceivably be modified to recognize Graffiti's gestures by rewriting the lookup tables.
+Palm, Inc. later developed Graffiti, a text input system based on single-stroke characters and commands. Among other devices, it was deployed on Apple's Newton and Windows Mobile.\footnote{See \url{https://en.wikipedia.org/wiki/Graffiti_(Palm_OS)}.} The SQL implementation could conceivably be modified to recognize Graffiti's gestures by rewriting the lookup tables.
 
-Dynamic Time Warping may be used for character recognition, given an effective way of converting stroke information to time series.\footnote{Ask the guy in B312 about this.}
+DTW may be used for handwriting recognition, contingent on an effective way of converting pen strokes to time series.\footnote{Ask the guy in B312 about this. {\emoji 😉}}
+
+Jack Schaedler has build an excellent \textit{explorable explanation} \cite{schaedler} showcasing GRAIL's handwriting recognition scheme, which many visualizations used in this work are based on.
 
 \textbf{Future work.} Recognizing characters composed of multiple strokes would bring the SQL implementation to basic feature parity with the original system.
 
-Groner's decision tree could be represented more effectively – building the character recognition scheme on top of a graph database might lend itself to an implementation that's more true to the original.
+Groner's decision tree could be represented more effectively – building the character recognition scheme on top of a graph database \textit{might} lend itself to an implementation that's more true to the original.
 
-Because modern tablets feature resolutions significantly higher than the RAND tablet, the smoothing step is less crucial now than it was when the RAND tablet was used. Similarly, the time savings brought about by thinning are barely worth the computing effort on modern, faster systems.
+Because modern tablets feature resolutions significantly higher than the RAND tablet, the smoothing step is less crucial now than it was back then. Similarly, the time savings brought about by thinning barely make a dent on modern systems.
 
 \bibliographystyle{abbrv}
 \bibliography{paper.bib}

@@ -1723,7 +1723,7 @@ Computing Machinery]
   \fi
   \gdef\and{}}%
   \def\email##1##2{\ifx\@currentaffiliation\@empty
-    \gdef\@currentaffiliation{\nolinkurl{##2}}%
+    \gdef\@currentaffiliation{##2}%
   \else
     \g@addto@macro\@currentaffiliation{\par\nolinkurl{##2}}%
   \fi}%
@@ -1758,7 +1758,7 @@ Computing Machinery]
   \fi
   \gdef\and{}}%
   \def\email##1##2{\ifx\@currentaffiliation\@empty
-    \gdef\@currentaffiliation{\nolinkurl{##2}}%
+    \gdef\@currentaffiliation{##2}%
   \else
     \g@addto@macro\@currentaffiliation{\par\nolinkurl{##2}}%
   \fi}%
