@@ -1,10 +1,13 @@
 # handwriting
 
-An SQL implementation of an [ancient handwriting recognition algorithm](https://jackschaedler.github.io/handwriting-recognition/).
+A SQL implementation of an [ancient handwriting recognition algorithm](https://jackschaedler.github.io/handwriting-recognition/).
 
-**Overview:** The directory `code/` contains the implementation. In `paper/`, you'll find the LaTeX source of a short 4-page paper on the topic. Finally, a [Deckset](https://www.deckset.com/)-powered set of slides lives in `presentation/`.
+Yes, this is weird! But it nicely showcases that *SQL is a programming langauge*, which is the title of the [seminar](https://db.inf.uni-tuebingen.de/teaching/SQLisaProgrammingLanguageSS2018.html) during which this work was done.
 
-# Setup
+**Overview:** The directory `code/` contains the implementation. In `paper/`, you'll find the LaTeX source of a short 4-page term paper on the topic. Finally, a [Deckset](https://www.deckset.com/)-powered set of slides lives in `presentation/`.
+
+
+## Setup
 
 Install [PostgreSQL](https://www.postgresql.org/), version 9.4 or newer should work just fine. Then run:
 
@@ -12,7 +15,8 @@ Install [PostgreSQL](https://www.postgresql.org/), version 9.4 or newer should w
 psql -f handwriting_setup.sql
 ```
 
-# Usage
+
+## Usage
 
 Open `code/index.html` in your browser and draw a character as instructed. Ignore the "Working..." bit – setting up the server component, which runs the query on a background Postgres instance, can be a bit of a pain. Instead, copy the JSON value shown at the bottom of the page.
 
@@ -35,3 +39,15 @@ psql -f handwriting.sql
 ```
 
 If everything went well, you have just found out which character you've drawn! (Ideally, it matches your memory...)
+
+
+## License
+
+See `LICENSE`, with the following caveats:
+
+* Mike Bostock' D3.js, located at `code/assets/d3.v4.min.js`, is licensed under the [BSD 3-Clause License](https://github.com/d3/d3/blob/master/LICENSE).
+* The Iosevka font, to be found at `code/assets/iosevka-regular.*`, is licensed under the [SIL Open Font License Version 1.1](https://github.com/be5invis/Iosevka/blob/master/LICENSE.md).
+* Most of the visualizations in `paper/`, `presentation/`, as well as `code/assets/guide.png` are based on Jack Schaedler's excellent interactive essay ["Back to the Future of
+Handwriting Recognition"](https://jackschaedler.github.io/handwriting-recognition/), which is licensed under the [MIT License](https://github.com/jackschaedler/handwriting-recognition/blob/master/LICENSE).
+* The videos `presentation/alankay*.mp4` of Alan Kay demoing GRAIL are taken from a talk entitled "Doing with Images Makes Symbols". As the're still under copyright protection, I'm technically engaging in [freebooting](https://www.urbandictionary.com/define.php?term=Freebooting) by including them in this repository. However, since the talk has been [available on archive.org since 2002](https://archive.org/details/AlanKeyD1987), I'm hopeful that nobody will mind too much.
+* Similar caveats hold for `paper/grailconsole.png`, `presentation/approach.png`, `presentation/decisiontree.png`, the mockup used for `presentation/nexus5.jpg`, `presentation/pglogo.png`, and `presentation/tablet.jpg`.
