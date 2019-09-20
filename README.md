@@ -9,7 +9,7 @@ Yes, this is weird! But it nicely showcases that *SQL is a programming language*
 
 ## Setup
 
-Install [PostgreSQL](https://www.postgresql.org/), version 9.4 or newer should work just fine. Then run:
+Install [PostgreSQL](https://www.postgresql.org/), version 10 or newer should work just fine. Then run:
 
 ```bash
 psql -f code/handwriting_setup.sql
