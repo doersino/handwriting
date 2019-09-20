@@ -4,7 +4,7 @@ A SQL implementation of an [ancient handwriting recognition algorithm](https://j
 
 Yes, this is weird! But it nicely showcases that *SQL is a programming language*, which is the title of the [seminar](https://db.inf.uni-tuebingen.de/teaching/SQLisaProgrammingLanguageSS2018.html) during which this work was done.
 
-**Overview:** The directory `code/` contains the implementation. In `paper/`, you'll find the LaTeX source of a short 4-page [term paper on the topic](paper/paper.pdf). Finally, a [Deckset](https://www.deckset.com/)-powered [set of slides]() lives in `presentation/`.
+**Overview:** The directory `code/` contains the implementation. In `paper/`, you'll find the LaTeX source of a short 4-page [term paper on the topic](paper/paper.pdf). Finally, a [Deckset](https://www.deckset.com/)-powered [set of slides](presentation/presentation.pdf) lives in `presentation/`.
 
 
 ## Setup
