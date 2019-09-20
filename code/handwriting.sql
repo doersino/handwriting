@@ -2,7 +2,7 @@
 -- https://jackschaedler.github.io/handwriting-recognition/
 --
 -- Setup:
--- Create a databased "handwriting". Run the setup script:
+-- Create a database "handwriting". Run the setup script:
 -- $ psql -d handwriting -f handwriting_setup.sql
 --
 -- Usage:

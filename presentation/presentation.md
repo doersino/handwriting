@@ -36,7 +36,7 @@ In the early 60s, keyboard proficiency was less widespread, so other input metho
 
 ^ wonder how he felt the first time he used an ipad
 
-![autoplay](alankay_letterboxed.mp4)
+![autoplay](alankay_condensed_letterboxed.mp4)
 
 ---
 

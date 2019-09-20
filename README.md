@@ -4,7 +4,7 @@ A SQL implementation of an [ancient handwriting recognition algorithm](https://j
 
 Yes, this is weird! But it nicely showcases that *SQL is a programming language*, which is the title of the [seminar](https://db.inf.uni-tuebingen.de/teaching/SQLisaProgrammingLanguageSS2018.html) during which this work was done.
 
-**Overview:** The directory `code/` contains the implementation. In `paper/`, you'll find the LaTeX source of a short 4-page term paper on the topic. Finally, a [Deckset](https://www.deckset.com/)-powered set of slides lives in `presentation/`.
+**Overview:** The directory `code/` contains the implementation. In `paper/`, you'll find the LaTeX source of a short 4-page [term paper on the topic](paper/paper.pdf). Finally, a [Deckset](https://www.deckset.com/)-powered [set of slides]() lives in `presentation/`.
 
 
 ## Setup
@@ -12,7 +12,7 @@ Yes, this is weird! But it nicely showcases that *SQL is a programming language*
 Install [PostgreSQL](https://www.postgresql.org/), version 9.4 or newer should work just fine. Then run:
 
 ```bash
-psql -f handwriting_setup.sql
+psql -f code/handwriting_setup.sql
 ```
 
 
@@ -32,13 +32,13 @@ to
 \set pen '〰'
 ```
 
-(where `〰` denotes the JSON value copied just earlier) and run it:
+(where `〰` should be replaced with the JSON value copied just earlier) and run it:
 
 ```bash
-psql -f handwriting.sql
+psql -f code/handwriting.sql
 ```
 
-If everything went well, you have just found out which character you've drawn! (Ideally, it matches your memory...)
+If everything went well, you have just found out which character you've drawn! (Ideally, it matches your intent...)
 
 
 ## License
