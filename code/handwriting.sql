@@ -1,4 +1,4 @@
--- Hand writing recognition scheme modeled after an interactive essay:
+-- Handwriting recognition scheme modeled after an interactive essay:
 -- https://jackschaedler.github.io/handwriting-recognition/
 --
 -- Setup:

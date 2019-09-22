@@ -2,7 +2,7 @@
 
 A SQL implementation of an [ancient handwriting recognition algorithm](https://jackschaedler.github.io/handwriting-recognition/).
 
-Yes, this is weird! But it nicely showcases that *SQL is a programming language*, which is the title of the [seminar](https://db.inf.uni-tuebingen.de/teaching/SQLisaProgrammingLanguageSS2018.html) during which this work was done.
+[Yes,](https://twitter.com/fire/status/1175074205546635264) [this](https://twitter.com/monotron_/status/1175398600299438080) [is](https://twitter.com/JamionW/status/1175128893461864449) [weird!](https://twitter.com/brain_thot/status/1175121646707007488) But it nicely showcases that *SQL is a programming language*, which is the title of the [seminar](https://db.inf.uni-tuebingen.de/teaching/SQLisaProgrammingLanguageSS2018.html) during which this work was done.
 
 **Overview:** The directory `code/` contains the implementation. In `paper/`, you'll find the LaTeX source of a short 4-page [term paper on the topic](paper/paper.pdf). Finally, a [Deckset](https://www.deckset.com/)-powered [set of slides](presentation/presentation.pdf) lives in `presentation/`.
 
