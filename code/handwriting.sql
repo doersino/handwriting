@@ -1,15 +1,17 @@
 -- Handwriting recognition scheme modeled after an interactive essay:
 -- https://jackschaedler.github.io/handwriting-recognition/
 --
+-- Additional information: https://github.com/doersino/handwriting
+--
 -- Setup:
--- Create a database "handwriting". Run the setup script:
+-- $ psql -c "CREATE DATABASE handwriting;"
 -- $ psql -d handwriting -f handwriting_setup.sql
 --
 -- Usage:
--- Now use the enclosed HTML file to generate a pen stroke, then run the
--- following (on PostgreSQL 10 or newer), replacing the "PEN_STROKE" placeholder
+-- Generate a pen stroke using the enclosed HTML file index.html, then run the
+-- following (on PostgreSQL 10 or newer), replacing the "〰" placeholder
 -- with the generated pen stroke:
--- $ psql -d handwriting -f handwriting.sql -v pen='PEN_STROKE'
+-- $ psql -d handwriting -f handwriting.sql -v pen='〰'
 --
 -- Example (the letter A):
 --\set pen '[ { "x": 37, "y": 31 }, { "x": 37, "y": 31 }, { "x": 37, "y": 34 }, { "x": 37, "y": 39 }, { "x": 38, "y": 43 }, { "x": 41, "y": 57 }, { "x": 44, "y": 66 }, { "x": 48, "y": 76 }, { "x": 52, "y": 86 }, { "x": 54, "y": 92 }, { "x": 56, "y": 96 }, { "x": 58, "y": 99 }, { "x": 59, "y": 101 }, { "x": 59, "y": 102 }, { "x": 60, "y": 102 }, { "x": 60, "y": 102 }, { "x": 60, "y": 101 }, { "x": 60, "y": 98 }, { "x": 61, "y": 90 }, { "x": 64, "y": 80 }, { "x": 65, "y": 73 }, { "x": 67, "y": 66 }, { "x": 69, "y": 60 }, { "x": 71, "y": 52 }, { "x": 72, "y": 49 }, { "x": 72, "y": 46 }, { "x": 73, "y": 44 }, { "x": 74, "y": 42 }, { "x": 74, "y": 41 }, { "x": 74, "y": 40 }, { "x": 74, "y": 40 }, { "x": 74, "y": 39 }, { "x": 74, "y": 39 }, { "x": 74, "y": 39 }, { "x": 74, "y": 39 }, { "x": 74, "y": 39 }, { "x": 74, "y": 39 }, { "x": 72, "y": 40 }, { "x": 67, "y": 43 }, { "x": 63, "y": 45 }, { "x": 60, "y": 47 }, { "x": 58, "y": 49 }, { "x": 56, "y": 50 }, { "x": 54, "y": 52 }, { "x": 52, "y": 52 }, { "x": 51, "y": 53 }, { "x": 50, "y": 54 }, { "x": 50, "y": 54 }, { "x": 50, "y": 54 }, { "x": 49, "y": 54 }, { "x": 49, "y": 54 }, { "x": 49, "y": 54 }, { "x": 49, "y": 54 }, { "x": 49, "y": 55 }, { "x": 49, "y": 55 }, { "x": 49, "y": 55 }, { "x": 48, "y": 55 }, { "x": 48, "y": 55 }, { "x": 48, "y": 55 }, { "x": 47, "y": 56 }, { "x": 46, "y": 56 }, { "x": 46, "y": 56 }, { "x": 46, "y": 56 }, { "x": 46, "y": 56 } ]'
@@ -36,7 +38,7 @@
 -- TYPES, FUNCTIONS AND LOOKUP TABLES --
 ----------------------------------------
 
--- Include setup file.
+-- Load the setup file.
 --\i 'handwriting_setup.sql'
 
 
